@@ -1,0 +1,3 @@
+{:name "savelast"
+ :entry savelast.core
+ :loader [:jolt :sci]}
