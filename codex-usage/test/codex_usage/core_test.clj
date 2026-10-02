@@ -12,12 +12,17 @@
 (def weekly {:used_percent 110 :limit_window_seconds 604800 :reset_at 1700500000})
 (def payload {:account {:email "test@example.org" :plan "plus"}
               :rate_limit {:primary_window primary :secondary_window weekly}})
-(def ctx {:model {:provider :adapter :id "codex" :base-url "https://adapter.test/v1/"}})
+(def ctx {:mode :interactive
+          :model {:provider :adapter :id "codex" :base-url "https://adapter.test/v1/"}})
 
 (defn api-with-auth []
   (let [{:keys [api state]} (ext/create-nullable-api)]
-    {:api (assoc-in api [:models :get-api-key-and-headers]
-                    (fn [_] {:ok true :api-key "secret" :headers {"X-Test" "yes"}}))
+    {:api (-> api
+              (assoc-in [:models :get-api-key-and-headers]
+                        (fn [_] {:ok true :api-key "secret" :headers {"X-Test" "yes"}}))
+              (assoc-in [:ui :chat-info]
+                        (fn [label content]
+                          (swap! state update :ui-calls conj [:chat-info label content]))))
      :state state}))
 
 (use-fixtures :each (fn [f] (try (f) (finally (usage/shutdown (:api (ext/create-nullable-api)))))))
@@ -80,7 +85,7 @@
         claims {"https://api.openai.com/auth" {"chatgpt_account_id" "acct"}}
         token (str "header." (crypto/base64url (.getBytes (json/generate-string claims) "UTF-8")) ".sig")
         api (assoc-in api [:models :get-api-key-and-headers] (constantly {:ok true :api-key token}))
-        native {:model {:provider :openai-codex :id "gpt"}}
+        native {:mode :interactive :model {:provider :openai-codex :id "gpt"}}
         requests (atom [])
         response (atom {})]
     (with-redefs [concurrent/spawn (fn [_] nil)
@@ -101,10 +106,12 @@
         (reset! requests [])
         (reset-handler native "native-id")
         (is (= 1 (count @requests)))
-        (is (= :error (last (last (:ui-calls @state)))))))))
+        (is (= [:chat-info "Codex resets error" "Activate Codex reset returned unexpected result: unexpected"]
+               (last (:ui-calls @state))))))))
 
 (defn- command [state name] (get-in @state [:commands name :handler]))
 (defn- notifications [state] (filter #(= :notify (first %)) (:ui-calls @state)))
+(defn- chat-messages [state] (filter #(= :chat-info (first %)) (:ui-calls @state)))
 
 (deftest commands-and-reset-credits
   (let [{:keys [api state]} (api-with-auth)
@@ -114,30 +121,47 @@
                   http/request (fn [r] (swap! requests conj r) {:status 200 :body (json/generate-string @response)})]
       (usage/init api)
       ((command state "codex-reset") ctx "")
-      (is (= [:notify "No banked rate-limit reset credits." :info] (last (notifications state))))
+      (is (= [:chat-info "Codex resets" "No banked rate-limit reset credits."] (last (chat-messages state))))
       (reset! response {:credits [{:id "later" :status "banked" :granted_at "2026-01-01T12:30:00Z"}
                                   {:id "early" :status "banked" :granted_at "2026-01-01T12:30:00Z" :expires_at "2026-02-01T00:00:00Z"}]})
       ((command state "codex-reset") ctx "")
-      (let [s (second (last (notifications state)))]
-        (is (< (str/index-of s "early") (str/index-of s "later")))
+      (let [s (nth (last (chat-messages state)) 2 "")]
+        (is (str/starts-with? s "Banked Codex rate-limit resets:"))
+        (is (< (or (str/index-of s "early") -1) (or (str/index-of s "later") -1)))
         (is (str/includes? s "2026-01-01 12:30 UTC")))
       (reset! response {})
       ((command state "codex-reset") ctx " exact-id ")
       (let [r (first (filter #(= :post (:method %)) @requests))]
         (is (= "https://adapter.test/v1/codex/reset" (:url r)))
         (is (= {:credit_id "exact-id"} (json/parse-string (:body r) true))))
-      (is (some #(str/includes? (second %) "activated (0 rate-limit windows reset)") (notifications state)))
+      (is (= [:chat-info "Codex resets" "Reset exact-id activated (0 rate-limit windows reset)."]
+             (last (chat-messages state))))
       ((command state "codex-reset") ctx "not an id")
-      (is (= :error (last (last (notifications state)))))
+      (is (= [:chat-info "Codex resets error" "Usage: /codex-reset [reset-id]"] (last (chat-messages state))))
       (reset! response payload)
       ((command state "codex-usage") ctx "")
-      (is (str/starts-with? (second (last (notifications state))) "ChatGPT Codex status"))
-      (testing "failed explicit refresh reports only an error, never a success card"
+      (is (= "Codex usage" (second (last (chat-messages state)))))
+      (is (str/starts-with? (nth (last (chat-messages state)) 2 "") "ChatGPT Codex status"))
+      (testing "failed explicit refresh appends only an error, never a success card"
         (reset! response {})
-        (let [before (count (notifications state))]
+        (let [before (count (chat-messages state))]
           ((command state "codex-usage") ctx "")
-          (is (= (inc before) (count (notifications state))))
-          (is (= :error (last (last (notifications state))))))))))
+          (is (= (inc before) (count (chat-messages state))))
+          (is (= [:chat-info "Codex usage error" "ChatGPT did not return any Codex usage windows"]
+                 (last (chat-messages state))))))
+      (is (empty? (notifications state)) "interactive commands do not flash notifications"))))
+
+(deftest headless-command-output-falls-back-to-notifications
+  (let [{:keys [api state]} (api-with-auth)]
+    (with-redefs [concurrent/spawn (fn [_] nil)
+                  http/request (fn [_] {:status 200 :body "{}"})]
+      (usage/init api)
+      (doseq [headless [(assoc ctx :mode :print) (dissoc ctx :mode)]]
+        ((command state "codex-reset") headless "")
+        (is (= [:notify "No banked rate-limit reset credits." :info] (last (notifications state))))
+        ((command state "codex-usage") headless "")
+        (is (= [:notify "ChatGPT did not return any Codex usage windows" :error] (last (notifications state)))))
+      (is (empty? (chat-messages state))))))
 
 (deftest stale-responses-and-shutdown
   (let [{:keys [api state]} (api-with-auth)
@@ -153,6 +177,15 @@
         (is (not-any? #(and (= :set-status (first %)) (some? (nth % 2))) (:ui-calls @state)))
         ((nth @jobs 2))
         (is (some #(and (= :set-status (first %)) (str/includes? (or (nth % 2) "") "76.5%/5h")) (:ui-calls @state)))
+        (testing "automatic success and failure never append chat output or notifications"
+          (is (empty? (chat-messages state)))
+          (is (empty? (notifications state)))
+          (with-redefs [usage/fetch-status (fn [_ _] (throw (ex-info "offline" {:type :test-error})))]
+            (start {} ctx)
+            ((last @jobs)))
+          (is (= [:set-status "codex-usage" nil] (last (:ui-calls @state))))
+          (is (empty? (chat-messages state)))
+          (is (empty? (notifications state))))
         (start {} ctx)
         (usage/shutdown api)
         (let [before (:ui-calls @state)]

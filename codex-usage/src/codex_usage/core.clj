@@ -125,6 +125,11 @@
     (str (-> (java.time.Instant/parse s) str (subs 0 16) (str/replace "T" " ")) " UTC")
     (catch Exception _ s)))
 
+(defn- command-output [api ctx label message & [type]]
+  (if (= :interactive (:mode ctx))
+    (ext/ui-chat-info api (str label (when (= :error type) " error")) message)
+    (ext/ui-notify api message (or type :info))))
+
 (defn- reset-command [api ctx args refresh]
   (try
     (let [id (str/trim (or args ""))
@@ -133,21 +138,22 @@
       (if (str/blank? id)
         (let [payload (request-json c (if (:native? c) credits-url (str (:base-url c) "/codex/resets")))
               credits (sort-by #(or (:expires_at %) "9999") (:credits payload))]
-          (ext/ui-notify api
-                         (if (empty? credits) "No banked rate-limit reset credits."
-                             (str/join "\n" (concat ["Banked Codex rate-limit resets:"]
-                                                    (map #(str (:id %) "  " (:status %) "  granted " (credit-time (:granted_at %))
-                                                               "  expires " (if (:expires_at %) (credit-time (:expires_at %)) "never/unknown")) credits)
-                                                    ["Activate one with /codex-reset <reset-id>."]))) :info))
+          (command-output api ctx "Codex resets"
+                          (if (empty? credits) "No banked rate-limit reset credits."
+                              (str/join "\n" (concat ["Banked Codex rate-limit resets:"]
+                                                     (map #(str (:id %) "  " (:status %) "  granted " (credit-time (:granted_at %))
+                                                                "  expires " (if (:expires_at %) (credit-time (:expires_at %)) "never/unknown")) credits)
+                                                     ["Activate one with /codex-reset <reset-id>."])))))
         (let [payload (request-json c (if (:native? c) (str credits-url "/consume") (str (:base-url c) "/codex/reset"))
                                     (cond-> {:credit_id id} (:native? c) (assoc :redeem_request_id (str (java.util.UUID/randomUUID)))))
               result (or (not-empty (:result payload)) (not-empty (:status payload)) "reset")]
           (when-not (contains? #{"reset" "already_redeemed" "nothing_to_reset" "no_credit"} result)
             (fail (str "Activate Codex reset returned unexpected result: " result)))
-          (ext/ui-notify api (str "Reset " id (if (= result "reset") " activated" (str " result: " result))
-                                  " (" (or (:rate_limit_windows_reset payload) 0) " rate-limit windows reset).") :info)
+          (command-output api ctx "Codex resets"
+                          (str "Reset " id (if (= result "reset") " activated" (str " result: " result))
+                               " (" (or (:rate_limit_windows_reset payload) 0) " rate-limit windows reset)."))
           (refresh ctx false))))
-    (catch Exception e (ext/ui-notify api (ex-message e) :error))))
+    (catch Exception e (command-output api ctx "Codex resets" (ex-message e) :error))))
 
 (defn shutdown
   "Invalidate in-flight requests and wake the daemon immediately on unload."
@@ -182,7 +188,7 @@
                           (locking st
                             (when (and (= g (:generation @st)) (not (:stopped? @st)))
                               (ext/ui-set-status api "codex-usage" nil)
-                              (when report? (ext/ui-notify api (ex-message e) :error)))
+                              (when report? (command-output api ctx "Codex usage" (ex-message e) :error)))
                             nil))))))
         background (fn [ctx]
                      (when-let [g (reserve ctx)]
@@ -190,7 +196,7 @@
     (reset! runtime st)
     (ext/register-command! api {:name "codex-usage" :description "Show ChatGPT Codex account and rate-limit usage"
                                 :handler (fn [ctx _] (when-let [s (refresh ctx true)]
-                                                       (ext/ui-notify api (format-status-card s) :info)))})
+                                                       (command-output api ctx "Codex usage" (format-status-card s))))})
     (ext/register-command! api {:name "codex-reset" :description "List banked Codex resets or activate an exact reset ID"
                                 :handler (fn [ctx args] (reset-command api ctx args refresh))})
     (doseq [event [:session-start :agent-settled :model-select]]

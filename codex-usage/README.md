@@ -32,11 +32,18 @@ window is shown, along with a weekly window within 5% of seven days.
 - `/codex-reset <reset-id>`: redeem that exact ID, then refresh usage.
   This is a real account mutation; there is no extra confirmation, matching Pi.
 
+Explicit command output (usage cards, reset lists, activation results, and
+errors) is appended to the conversation area as labeled info messages, not
+brief flashes. It stays in the live transcript, is never sent to the model,
+and is not saved across restarts or session resume. Errors are labeled
+`Codex usage error` or `Codex resets error`.
+
 Refresh runs at session start, model selection, agent settlement, and every
-five minutes. Background failures silently clear only this meter. Explicit
-commands report errors. Model switches and unload invalidate older responses;
-unload wakes the polling worker immediately. Other status keys, the builtin
-footer, editor, and widgets are untouched. Headless UI calls are inert.
+five minutes. Automatic refreshes remain footer-only; background failures
+silently clear only this meter. Model switches and unload invalidate older
+responses; unload wakes the polling worker immediately. Other status keys,
+the builtin footer, editor, and widgets are untouched. Headless commands
+fall back to notifications; headless UI calls are inert.
 
 For `openai-codex`, kmet's resolved OAuth access token supplies the ChatGPT
 account ID and account details. Requests use ChatGPT's WHAM usage and
