@@ -1,0 +1,12 @@
+{:paths ["src" "test" "../../kmet/src"]
+ :tasks
+ {test {:doc "Run selected offline test namespaces (default: pins)"
+        :task (let [nss (if (seq *command-line-args*)
+                          (map symbol *command-line-args*)
+                          '[pins.model-test pins.ui-test pins.core-test])]
+                (doseq [ns-sym nss] (require ns-sym))
+                (let [summary (apply clojure.test/run-tests nss)]
+                  (when (pos? (+ (:fail summary) (:error summary)))
+                    (System/exit 1))))}
+  test-changed {:doc "Run this extension's offline tests"
+                :task (run 'test {:override-args ["pins.model-test" "pins.ui-test" "pins.core-test"]})}}}

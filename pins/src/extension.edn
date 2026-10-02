@@ -1,0 +1,1 @@
+{:name "pins" :entry pins.core :loader [:jolt :sci]}
