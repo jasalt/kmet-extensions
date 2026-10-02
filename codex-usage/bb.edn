@@ -1,0 +1,4 @@
+{:paths ["src" "test" "../../kmet/src"]
+ :tasks {test {:task (do (require 'codex-usage.core-test)
+                         (let [r (clojure.test/run-tests 'codex-usage.core-test)]
+                           (when (pos? (+ (:fail r) (:error r))) (System/exit 1))))}}}

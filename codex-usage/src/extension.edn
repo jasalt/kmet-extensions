@@ -1,0 +1,1 @@
+{:name "codex-usage", :entry codex-usage.core, :loader [:jolt :sci]}
