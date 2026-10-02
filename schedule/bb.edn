@@ -1,0 +1,30 @@
+{:paths ["src" "test" "../../kmet/src"]
+ :tasks {test {:task (do (require 'schedule.core-test)
+                         (require 'schedule.schedule-test)
+                         (require 'schedule.policy-test)
+                         (require 'schedule.action-test)
+                         (require 'schedule.store-test)
+                         (require 'schedule.store-race-test)
+                         (require 'schedule.ledger-test)
+                         (require 'schedule.lock-test)
+                         (require 'schedule.trust-test)
+                         (require 'schedule.prompt-test)
+                         (require 'schedule.privilege-test)
+                         (require 'schedule.privilege-queue-test)
+                         (require 'schedule.runner-test)
+                         (let [r (clojure.test/run-tests
+                                  'schedule.core-test
+                                  'schedule.schedule-test
+                                  'schedule.policy-test
+                                  'schedule.action-test
+                                  'schedule.store-test
+                                  'schedule.store-race-test
+                                  'schedule.ledger-test
+                                  'schedule.lock-test
+                                  'schedule.trust-test
+                                  'schedule.prompt-test
+                                  'schedule.privilege-test
+                                  'schedule.privilege-queue-test
+                                  'schedule.runner-test)]
+                           (when (pos? (+ (:fail r) (:error r)))
+                             (System/exit 1))))}}}
