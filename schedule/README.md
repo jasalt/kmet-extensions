@@ -10,6 +10,8 @@ Kinds are `prompt`, `shell`, `notify`, and `message`; actions are `create`,
 `list`, `cancel`, `enable`, `disable`, `run_now`, `history`, and `trust`.
 See `src/skills/schedule/SKILL.md` for the tool workflow.
 
+![schedule demo](demo.webp)
+
 ## Safety and persistence
 
 - Global jobs live in `<agent-dir>/schedule/schedules.edn`; project jobs in

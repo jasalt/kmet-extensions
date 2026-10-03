@@ -2,6 +2,8 @@
 
 A standalone port of the [pinned Pi Codex usage extension](https://github.com/jasalt/chatgpt-openai-api-adapter/blob/94f45568b4bd7842b1aef362cc3ba883b1312951/contrib/pi-codex-usage.ts).
 
+![Codex usage demo](demo.webp)
+
 ## Install
 
 Link the **src directory** (the artifact root) into kmet's extensions directory:
@@ -71,8 +73,9 @@ bb pack-extension ../kmet-extensions/codex-usage/src target/codex-usage.jar
 
 Tests are offline: usage validation, presentation, native/adapter auth and
 requests, commands, reset credits, stale responses, and unload behavior.
-The smoke script exercises the actual isolated SCI loader, commands, and
-unload with offline auth/HTTP seams. The manifest allows both native Jolt and SCI loaders. Jolt execution and live
+The smoke script exercises the actual isolated SCI loader and live interactive
+model context (resolved model records, not bare IDs), request-auth resolution,
+commands, and unload with offline credential/HTTP seams. The manifest allows both native Jolt and SCI loaders. Jolt execution and live
 account/terminal behavior require those environments and are not covered by
 the offline suite. Local date rendering follows the host's locale/date library
 rather than JavaScript's Intl implementation.

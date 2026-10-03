@@ -6,6 +6,9 @@ messages and recall them in a borderless full-width overlay browser, without
 taking permanent screen space. No tools, settings, or external dependencies.
 Upstream's MIT license is retained in `LICENSE`.
 
+![pins demo](demo.webp)
+
+
 ## Commands
 
 | Command | Effect |

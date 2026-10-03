@@ -5,6 +5,9 @@ referenced at `17b568e8e3b70d009adb8ac090d2b3280f065f11`. Displays existing
 images; it does not generate them. No external runtime dependencies or settings.
 Upstream's MIT license and attribution are retained in `LICENSE`.
 
+![imgview demo](demo.webp)
+
+
 ## Install
 
 From the sibling **kmet checkout** (no `kmet` executable required):

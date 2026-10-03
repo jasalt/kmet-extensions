@@ -9,6 +9,9 @@ approval, credentials, access, or missing external evidence. It does not wait
 for or collect a reply, send progress reports, or send automatic idle alerts.
 `/notify-human-test [message]` sends a manual test notification.
 
+![Pushover notification demo](demo.webp)
+
+
 ## Install
 
 The `src/` directory is the extension artifact root. From this directory:
