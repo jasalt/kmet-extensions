@@ -1,0 +1,3 @@
+{:name "session-migrate"
+ :entry session-migrate.core
+ :loader [:jolt :sci]}

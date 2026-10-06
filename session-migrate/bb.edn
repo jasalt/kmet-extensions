@@ -1,0 +1,9 @@
+{:paths ["src" "test"]
+ :tasks
+ {test {:doc "Run offline migration tests against KMET_SOURCE_ROOT (defaults to ../../kmet)"
+        :requires ([babashka.classpath :as cp])
+        :task (do
+                (cp/add-classpath (str (or (System/getenv "KMET_SOURCE_ROOT") "../../kmet") "/src"))
+                (require 'session-migrate.test-runner)
+                ((resolve 'session-migrate.test-runner/-main)))}
+  test-changed {:doc "Run this extension's offline tests" :task (run 'test)}}}
