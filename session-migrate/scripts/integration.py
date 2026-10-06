@@ -219,6 +219,7 @@ def run(args, output):
         inspected = process.command(f'/session-migrate inspect claude "{source}"')
         assert inspected["leaf"] == initial["leaf"] and sessions() == before
         assert not Provider.requests
+        assert b"Session migration inspection" in process.log
         uuid_inspected = process.command(f'/session-migrate inspect claude {source_uuid}')
         assert uuid_inspected["leaf"] == initial["leaf"] and sessions() == before
         duplicate = home / "claude" / "projects" / "ambiguous" / (source_uuid + ".jsonl")
@@ -247,6 +248,8 @@ def run(args, output):
         continued = process.continue_local(1)
         assert continued["name"] == imported["name"]
         wire = json.dumps(Provider.requests[0])
+        assert "Session migration inspection" not in wire and "Source SHA-256:" not in wire
+        assert original_hashes[source] not in wire
         assert "tool_calls" in wire and "tool_call_id" in wire and "image_url" in wire
         assert "thinking" not in wire and "PRIVATE_SENTINEL" not in wire
         assert not any("MIGRATION_CONTINUATION" in json.dumps(request) for request in Provider.requests)

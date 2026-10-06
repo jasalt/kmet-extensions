@@ -36,13 +36,32 @@
       (mio/fail! (str usage "; only Claude → kmet is supported")))
     {:action action :source path}))
 
+(defn- inspection-text [report]
+  (str/join "\n"
+            (concat [(str "Source format: " (:source-format report))
+                     (str "Source SHA-256: " (:source-sha256 report))
+                     (str "Records: " (:records report))
+                     (str "Selected records: " (:selected-records report))]
+                    (mapcat (fn [group]
+                              (cons (str (str/capitalize (name group)) ":")
+                                    (if (seq (get report group))
+                                      (for [[k n] (sort-by key (get report group))]
+                                        (str "  " (name k) ": " n))
+                                      ["  none"])))
+                            [:preserved :omitted]))))
+
 (defn- run-command! [api ctx args cancelled?]
   (let [{:keys [action source]} (arguments args)
         ;; No account data, runtime config or recorded tools are evaluated.
         transcript (claude/read-claude (resolve-source (:cwd ctx) source) cancelled?)]
     (if (= "inspect" action)
-      (do (ext/ui-notify api (json/generate-string (:report transcript)) :info)
-          (:report transcript))
+      (let [report (:report transcript)]
+        (if (= :interactive (:mode ctx))
+          ;; Live UI history only: never model context or persisted entries.
+          (ext/ui-chat-info api "Session migration inspection"
+                            (inspection-text report))
+          (ext/ui-notify api (json/generate-string report) :info))
+        report)
       (do
         (when-not ((:is-idle ctx)) (mio/fail! "Wait for kmet to be idle before importing"))
         (when ((:has-pending-messages ctx)) (mio/fail! "Drain pending messages before importing"))

@@ -24,8 +24,8 @@ The user's modified `../kmet` checkout was left untouched.
 
 | Gate | Evidence |
 | --- | --- |
-| Babashka offline suite | **16 tests, 127 assertions**, 0 failures/errors |
-| Jolt offline suite | **16 tests, 127 assertions**, 0 failures/errors |
+| Babashka offline suite | **16 tests, 136 assertions**, 0 failures/errors |
+| Jolt offline suite | **16 tests, 136 assertions**, 0 failures/errors |
 | Real SCI extension loader | Load, execute `inspect`/`save`, native load/context, unload/deregister, reload and execute again |
 | Real native Jolt extension loader | Same lifecycle and native context checks |
 | Source CLI, Babashka | All 11 subprocess checks below pass |
@@ -51,7 +51,10 @@ controlling **text PTY**, private HOME/agent/config directories, a test-only
 provider/probe extension and an HTTP server bound to **127.0.0.1**. Its eleven
 checks, separately passed in all four execution forms, are:
 
-1. `inspect` performs no writes, switch or model request.
+1. `inspect` performs no writes, switch or model request. Interactive output is
+   a multiline `ui-chat-info` report in the scrollable live conversation,
+   excluded from model context and not persisted. The PTY checks its label;
+   the continuation wire checks exclude both label and source checksum.
 2. Real UUID lookup works; ambiguous UUIDs refuse without mutation.
 3. `save` publishes native files without switching the live branch.
 4. `import` actually changes the live session: source title, 12 native branch

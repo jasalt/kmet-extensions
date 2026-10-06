@@ -1,6 +1,7 @@
 ;; Copyright (c) 2026 Jarkko Saltiola; SPDX-License-Identifier: MIT
 (ns session-migrate.core-test
   (:require [clojure.test :refer [deftest is]]
+            [clojure.string :as str]
             [babashka.fs :as fs]
             [kmet.extension :as ext]
             [session-migrate.claude :as claude]
@@ -9,7 +10,11 @@
 
 (defn harness [dir]
   (let [{:keys [api state]} (ext/create-nullable-api)
-        api (assoc api :agent-dir dir)
+        api (-> api
+                (assoc :agent-dir dir)
+                (assoc-in [:ui :chat-info]
+                          (fn [label content]
+                            (swap! state update :ui-calls conj [:chat-info label content]))))
         switches (atom [])]
     (sut/init api)
     {:state state :handler (get-in @state [:commands "session-migrate" :handler])
@@ -24,8 +29,19 @@
       (is (= ["session-migrate"] (keys (:commands @state))))
       (is (empty? (:ui-calls @state)))
       (is (empty? (fs/list-dir dir)))
-      (handler ctx (str "inspect claude " native-fixture))
+      (let [report (handler ctx (str "inspect claude " native-fixture))
+            [kind label content] (last (:ui-calls @state))]
+        (is (= :chat-info kind))
+        (is (= "Session migration inspection" label))
+        (is (str/includes? content "\n"))
+        (is (str/includes? content (str "Source SHA-256: " (:source-sha256 report))))
+        (is (str/includes? content "  tool-calls: 3"))
+        (is (str/includes? content "  private-thinking: 3"))
+        (is (empty? (:model-calls @state)))
+        (is (empty? (:emitted @state))))
       (is (empty? (fs/list-dir dir)))
+      (handler (assoc ctx :mode :print) (str "inspect claude " native-fixture))
+      (is (= :notify (first (last (:ui-calls @state)))))
       (let [save (handler ctx (str "save claude \"" native-fixture "\""))
             imported (handler ctx (str "import claude " native-fixture))]
         (is (fs/regular-file? (:path save)))

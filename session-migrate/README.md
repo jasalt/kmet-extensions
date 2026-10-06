@@ -31,8 +31,10 @@ change the active session.
 /session-migrate import claude 73fea258-9467-4a17-877b-ef6bcd0898b7
 ```
 
-- **inspect**: validate and display a content-free hash/count report. No writes,
-  switch or model call.
+- **inspect**: validate and display a multiline, content-free hash/count report
+  in the scrollable conversation using `ui-chat-info` (like `codex-usage`). It is
+  UI-only: never sent to the model or persisted across restarts. Noninteractive
+  mode retains JSON notification output. No writes, switch or model call.
 - **save**: create a fresh native `.ednl` session and `.ednl.migration.json`
   manifest, without changing the active session.
 - **import**: save, then await the public interactive `:switch-session`
