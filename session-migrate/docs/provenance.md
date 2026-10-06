@@ -4,7 +4,8 @@
 
 - Original: <https://github.com/xhluca/session-migrate>, revision
   `c23b1dbd21404f78be3b69d42ff4fb158ff52105` (MIT).
-- Go/PiG behavioral reference: sibling `pig-extensions`, revision `62122e2`
+- Go/PiG behavioral reference: [jasalt/pig-extensions](https://github.com/jasalt/pig-extensions),
+  revision `62122e2`
   (`extensions/session-migrate/`). This extension is independent Clojure source;
   it neither invokes that extension nor depends on PiG or Python.
 - Target checked from <https://github.com/kmetia/kmet-agent>: latest upstream

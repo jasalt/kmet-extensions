@@ -2,7 +2,8 @@
 
 Independent Claude Code → **kmet** session importer, adapted from
 [xhluca/session-migrate](https://github.com/xhluca/session-migrate) and the
-Go/PiG port. No Python dependency, core patch, background job, tool or automatic
+[Go/PiG port](https://github.com/jasalt/pig-extensions/tree/main/extensions/session-migrate).
+No Python dependency, core patch, background job, tool or automatic
 migration. `src/extension.edn` prefers native Jolt, with SCI fallback.
 
 Verified against latest upstream kmet at validation time:
