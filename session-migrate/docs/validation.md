@@ -84,6 +84,34 @@ regex-map replacement difference; image conversion uses portable literal
 replacements. These fixes are exercised by actual loaded commands and native
 fixture/provider tests, not assumed from root namespace tests.
 
+## Detached tool-result recovery follow-up
+
+Before changing the importer, a synthetic transcript reproduced the malfunction:
+records `u -> a`, result `r -> a`, and continuation `next -> a` selected only
+`[u a next]` and failed completed-tool validation. Changing only the continuation
+parent to `r` passed with one call and one result. No private transcript or
+vendor service was used for this reproduction.
+
+The recovery fix was tested in Babashka source mode against the local kmet
+checkout at `9825d77f48056c7887a6980cc9406704f6ce7a20` (clean tracked files,
+pre-existing untracked files left untouched). These are follow-up gates, not a
+rerun of the historical Jolt/built-artifact matrix above:
+
+- `scripts/check.sh bb`: **19 tests, 165 assertions**, zero failures/errors,
+  plus the real-loader/save/context/reload smoke test.
+- `python3 scripts/integration.py --kmet-source /path/to/kmet`: all previous
+  checks plus synthetic detached-result native import and dummy-provider
+  continuation. Native order is user/assistant/tool/assistant; recovered result
+  content and its tool-call ID reach the provider converter. Four loopback
+  dummy requests total; import itself makes none. All source hashes unchanged.
+
+Recovery tests also cover physical child-before-parent order, multiple results,
+ambiguous candidates, already-resolved/inactive calls, wrong/missing linkage and
+session identity, sidechains, metadata, compact summaries, and sibling text.
+The bounded recovery scans check cancellation. No synthetic results are created.
+Jolt is not available in the follow-up environment, so this change has not been
+requalified on Jolt or the built artifacts.
+
 ## Reproduce
 
 From this extension directory, using a disposable clean upstream checkout:

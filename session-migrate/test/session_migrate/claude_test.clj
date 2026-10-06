@@ -8,6 +8,68 @@
             [session-migrate.io :as mio]
             [session-migrate.test-support :refer [with-temp source! message native-fixture]]))
 
+(defn- detached-result [id call]
+  (assoc (message id "a" "user" [{:type "tool_result" :tool_use_id call :content "RECOVERED" :is_error true}])
+         :sourceToolAssistantUUID "a"))
+
+(defn- detached-rows [& results]
+  (into (into [(message "u" nil "user" "hello")
+               (message "a" "u" "assistant" [{:type "tool_use" :id "c" :name "Read" :input {}}])]
+              results)
+        [(message "next" "a" "assistant" "continued") {:type "last-prompt" :leafUuid "next"}]))
+
+(deftest detached-result-recovery
+  (with-temp [dir]
+    (doseq [before? [false true]]
+      (let [rows (detached-rows (detached-result "r" "c"))
+            rows (if before? (assoc rows 1 (rows 2) 2 (rows 1)) rows)
+            {:keys [entries report]} (sut/read-claude (source! dir rows))]
+        (is (= [:user :assistant :tool :assistant] (mapv :role entries)))
+        (is (= 4 (:selected-records report)))
+        (is (= 1 (get-in report [:preserved :tool-results])))
+        (is (= "c" (get-in entries [2 :content 0 :tool_use_id])))
+        (is (true? (:is-error (entries 2))))))))
+
+(deftest detached-result-isolation
+  (with-temp [dir]
+    (doseq [[label mutate]
+            {:sidechain #(assoc % :isSidechain true)
+             :metadata #(assoc % :isMeta true)
+             :summary #(assoc % :isCompactSummary true)
+             :different-session #(assoc % :sessionId "other")
+             :missing-session #(dissoc % :sessionId)
+             :missing-source #(dissoc % :sourceToolAssistantUUID)
+             :wrong-source #(assoc % :sourceToolAssistantUUID "u")
+             :wrong-parent #(assoc % :parentUuid "u")
+             :missing-uuid #(dissoc % :uuid)
+             :wrong-role #(assoc-in % [:message :role] "assistant")
+             :sibling-text #(update-in % [:message :content] conj {:type "text" :text "EXCLUDED"})
+             :unrelated-call #(assoc-in % [:message :content 0 :tool_use_id] "other")}]
+      (testing (name label)
+        (is (thrown-with-msg? Exception #"unresolved tool call"
+                              (sut/read-claude (source! dir (detached-rows (mutate (detached-result "r" "c"))))))))))
+  (with-temp [dir]
+    (is (thrown-with-msg? Exception #"Ambiguous"
+                          (sut/read-claude (source! dir (detached-rows (detached-result "r1" "c")
+                                                                       (detached-result "r2" "c"))))))))
+
+(deftest detached-results-multiple-and-inactive
+  (with-temp [dir]
+    (let [rows (update-in (detached-rows (detached-result "r1" "c") (detached-result "r2" "d"))
+                          [1 :message :content] conj {:type "tool_use" :id "d" :name "Read" :input {}})
+          {:keys [entries report]} (sut/read-claude (source! dir rows))]
+      (is (= [:user :assistant :tool :tool :assistant] (mapv :role entries)))
+      (is (= ["c" "d"] (mapv #(get-in % [:content 0 :tool_use_id]) (filter #(= :tool (:role %)) entries))))
+      (is (= 2 (get-in report [:preserved :tool-results]))))
+    (let [rows (assoc-in (detached-rows (detached-result "r" "c") (detached-result "sibling" "c"))
+                         [4 :parentUuid] "r")
+          rows (conj rows (message "fork" "u" "assistant" [{:type "tool_use" :id "inactive" :name "Read" :input {}}])
+                     (assoc (detached-result "inactive-result" "inactive") :parentUuid "fork" :sourceToolAssistantUUID "fork"))
+          {:keys [entries report]} (sut/read-claude (source! dir rows))]
+      (is (= 1 (get-in report [:preserved :tool-results])))
+      (is (= 3 (get-in report [:omitted :inactive-or-metadata-record])))
+      (is (not (str/includes? (pr-str entries) "inactive"))))))
+
 (deftest native-produced-claude
   (let [{:keys [entries title report]} (sut/read-claude native-fixture)]
     (is (= "repair-event-window-boundary" title))

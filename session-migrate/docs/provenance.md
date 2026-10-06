@@ -8,6 +8,12 @@
   revision `62122e2`
   (`extensions/session-migrate/`). This extension is independent Clojure source;
   it neither invokes that extension nor depends on PiG or Python.
+- Detached tool-result recovery behavioral reference: Go/PiG revision `be71554`,
+  `extensions/session-migrate/claude.go` SHA-256
+  `af5b1ce62b472bc83673f46a39d6e408d6d224f6db0c4eab88de0e16bf0411d6`.
+  Reimplemented in Clojure with cancellation checks during recovery scans;
+  preserves strict explicit-link/same-session/unique-result eligibility. Tests
+  are synthetic and do not incorporate the operator's private transcript.
 - Target checked from <https://github.com/kmetia/kmet-agent>: latest upstream
   `a41fe5c01f2c115ea42fce4ea9764b9bc563a810`. The pre-existing, modified `../kmet`
   workspace was not edited or used as the verification target.
@@ -44,7 +50,9 @@ supplementary tests and are not represented as native Claude captures.
 - Source configuration/cwd, privileged messages, private/signed thinking,
   documents and opaque metadata are not migrated. Omissions are counted.
 - Incomplete tool exchanges are refused, not repaired with synthetic upstream
-  results. Invalid/missing/cyclic ancestry, duplicates, mixed session IDs and
+  results. Explicitly linked, same-session result-only children excluded by
+  ancestry may be recovered uniquely; sibling text/subagents are never flattened.
+  Invalid/missing/cyclic ancestry, duplicates, mixed session IDs and
   sidechain-only/active-sidechain transcripts are refused. JSON nesting is
   capped at 256 levels before the host decoder, preventing stack exhaustion.
 - The current kmet API supplies an agent directory, **not** its configured

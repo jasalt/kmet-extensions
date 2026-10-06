@@ -171,6 +171,19 @@ def compact_source(path):
     path.write_text("".join(json.dumps(row) + "\n" for row in rows))
 
 
+def detached_source(path):
+    def message(id_, parent, role, content):
+        return {"type": role, "uuid": id_, "parentUuid": parent, "sessionId": "detached-source",
+                "timestamp": "2026-01-01T00:00:00Z", "message": {"role": role, "content": content}}
+    rows = [message("u", None, "user", "Read a fixture"),
+            message("a", "u", "assistant", [{"type": "tool_use", "id": "call", "name": "Read", "input": {}}]),
+            dict(message("r", "a", "user", [{"type": "tool_result", "tool_use_id": "call", "content": "DETACHED_RESULT_MARKER"}]),
+                 sourceToolAssistantUUID="a"),
+            message("next", "a", "assistant", "Continued from assistant, not result"),
+            {"type": "last-prompt", "leafUuid": "next"}]
+    path.write_text("".join(json.dumps(row) + "\n" for row in rows))
+
+
 def run(args, output):
     output.mkdir(parents=True, exist_ok=True)
     home = output / "home"
@@ -187,7 +200,9 @@ def run(args, output):
     compact_source(compact)
     bad = home / "malformed.jsonl"
     bad.write_text('{"PRIVATE_SENTINEL": invalid}\n')
-    original_hashes = {p: digest(p) for p in [source, uuid_source, compact, bad]}
+    detached = home / "detached.jsonl"
+    detached_source(detached)
+    original_hashes = {p: digest(p) for p in [source, uuid_source, compact, bad, detached]}
     probes = output / "probes.jsonl"
     helper = home / "migration_probe.clj"
     shutil.copyfile(ROOT / "testdata/migration_probe.clj", helper)
@@ -273,11 +288,22 @@ def run(args, output):
         compact_wire = json.dumps(Provider.requests[2])
         assert "NATIVE_COMPACTION_SUMMARY" in compact_wire and "POST_COMPACTION_CONTEXT" in compact_wire
         assert "DO_NOT_SEND_PRECOMPACTION_HISTORY" not in compact_wire
+        before_detached = sessions()
+        recovered = process.command(f'/session-migrate import claude "{detached}"')
+        assert [row["role"] for row in recovered["branch"]] == ["user", "assistant", "tool", "assistant"], recovered
+        detached_path, = sessions() - before_detached
+        detached_manifest = json.loads(Path(str(detached_path) + ".migration.json").read_text())
+        assert detached_manifest["source"]["preserved"]["tool-results"] == 1
+        assert detached_manifest["source"]["preserved"]["tool-calls"] == 1
+        assert len(Provider.requests) == 3, "Import called a provider"
+        process.continue_local(4)
+        detached_wire = json.dumps(Provider.requests[3])
+        assert "DETACHED_RESULT_MARKER" in detached_wire and "tool_call_id" in detached_wire
         assert all(digest(path) == sha for path, sha in original_hashes.items())
         result = {"host": args.host, "execution": str(args.artifact.resolve()) if args.artifact else "source",
                   "upstream": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=args.kmet_source, text=True).strip(),
                   "checks": ["inspect-no-mutation", "uuid-lookup-and-ambiguity", "save-no-switch", "native-import-switch", "malformed-refusal", "private-manifest",
-                             "historical-tools-and-image-wire", "local-continuation", "reopen-and-continue", "native-compaction-context", "source-immutability"],
+                             "historical-tools-and-image-wire", "local-continuation", "reopen-and-continue", "native-compaction-context", "detached-result-recovery-and-continuation", "source-immutability"],
                   "provider-requests": len(Provider.requests), "native-fixture-sha256": original_hashes[source]}
         (output / "requests.json").write_text(json.dumps(Provider.requests, indent=2))
         (output / "result.json").write_text(json.dumps(result, indent=2) + "\n")

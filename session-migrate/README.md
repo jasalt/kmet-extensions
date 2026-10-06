@@ -56,6 +56,11 @@ extension does **not honor a custom `--session-dir`**. Use the reported path wit
 ## What carries over
 
 - Active UUID ancestry, not flattened append order; inactive forks excluded.
+  Unique result-only children outside the ancestry are recovered only when both
+  `parentUuid` and `sourceToolAssistantUUID` link to the selected call's assistant
+  record and a nonempty session ID matches. Results are inserted immediately
+  after that assistant. Sibling text, metadata, sidechains and already-resolved
+  calls are excluded; ambiguous eligible results fail.
 - User/assistant text, historical tool calls/results, embedded base64 images,
   explicit/AI title, and Claude compact-summary context.
 - Fresh native session/entry identities and parent links. Compactions use a

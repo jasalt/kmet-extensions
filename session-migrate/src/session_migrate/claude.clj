@@ -79,6 +79,69 @@
                 (vec (reverse path))
                 (recur (or parent logical) seen path)))))))))
 
+(defn- recover-tool-results
+  "Include unique result-only children explicitly linked to unresolved active calls.
+  Do not flatten sibling conversation, sidechains, or results from other sessions."
+  [records selected cancelled?]
+  (let [selected-set (set selected)
+        state (reduce
+               (fn [state i]
+                 (mio/check-cancel! cancelled?)
+                 (let [row (records i)
+                       content (value (value row :message) :content)]
+                   (if (or (true? (value row :isMeta)) (true? (value row :isSidechain))
+                           (not (sequential? content)))
+                     state
+                     (reduce (fn [state b]
+                               (mio/check-cancel! cancelled?)
+                               (cond
+                                 (and (= "assistant" (value row :type)) (= "tool_use" (value b :type)))
+                                 (assoc-in state [:owners (string-value b :id)] i)
+                                 (and (= "user" (value row :type)) (= "tool_result" (value b :type)))
+                                 (update state :resolved conj (string-value b :tool_use_id))
+                                 :else state)) state content))))
+               {:owners {} :resolved #{}} selected)
+        {:keys [owners resolved]} state
+        candidates
+        (reduce-kv
+         (fn [acc i row]
+           (mio/check-cancel! cancelled?)
+           (let [message (value row :message)
+                 content (value message :content)
+                 role (string-value message :role)
+                 eligible?
+                 (and (not (selected-set i)) (= "user" (value row :type))
+                      (not (true? (value row :isMeta))) (not (true? (value row :isSidechain)))
+                      (not (true? (value row :isCompactSummary))) (string-value row :uuid)
+                      (or (nil? role) (= "user" role)) (sequential? content) (seq content)
+                      (every?
+                       (fn [b]
+                         (mio/check-cancel! cancelled?)
+                         (let [id (string-value b :tool_use_id)
+                               owner (get owners id)
+                               call (get records owner)]
+                           (and (= "tool_result" (value b :type)) id (some? owner)
+                                (not (resolved id)) (string-value call :sessionId)
+                                (= (value row :sessionId) (value call :sessionId))
+                                (= (value row :parentUuid) (value call :uuid))
+                                (= (value row :sourceToolAssistantUUID) (value call :uuid)))))
+                       content))]
+             (if eligible?
+               (reduce (fn [acc b] (update acc (string-value b :tool_use_id) (fnil conj []) i)) acc content)
+               acc))) {} records)
+        _ (doseq [[_ matches] candidates]
+            (mio/check-cancel! cancelled?)
+            (when (> (count matches) 1) (mio/fail! "Ambiguous Claude tool result children")))
+        recovered (sort (set (map first (vals candidates))))
+        children (reduce (fn [acc i]
+                           (mio/check-cancel! cancelled?)
+                           (let [b (first (value (value (records i) :message) :content))]
+                             (update acc (owners (string-value b :tool_use_id)) (fnil conj []) i)))
+                         {} recovered)]
+    (vec (mapcat (fn [i]
+                   (mio/check-cancel! cancelled?)
+                   (cons i (get children i))) selected))))
+
 (defn- count! [counts key] (swap! counts update key (fnil inc 0)))
 
 (defn- image [block]
@@ -192,7 +255,7 @@
 (defn project
   "Project a parsed snapshot into native EDNL entry drafts plus content-free counts."
   [{:keys [records sha256]} cancelled?]
-  (let [selected (active-branch records cancelled?)
+  (let [selected (recover-tool-results records (active-branch records cancelled?) cancelled?)
         selected-set (set selected)
         selected-rows (mapv records selected)
         session-ids (set (keep #(string-value % :sessionId) selected-rows))
