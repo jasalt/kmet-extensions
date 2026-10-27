@@ -85,22 +85,45 @@ nix run . -- --version
 nix run . -- --help
 ```
 
+## Home Manager
+
+Add the collection to your configuration's flake inputs:
+
+```nix
+inputs.kmet-extensions.url = "github:jasalt/kmet-extensions";
+```
+
+Pass `inputs` to your Home Manager modules using
+`extraSpecialArgs = { inherit inputs; };` (or
+`home-manager.extraSpecialArgs` with the NixOS Home Manager module), then add:
+
+```nix
+{ pkgs, inputs, ... }:
+{
+  home.packages = [
+    inputs.kmet-extensions.packages.${pkgs.stdenv.hostPlatform.system}.default
+  ];
+}
+```
+
+After switching your Home Manager configuration, run `kmet-extensions` from
+any project. Update the pinned version with `nix flake update kmet-extensions`.
+For a local checkout, use `path:/absolute/path/to/kmet-extensions` as the input URL.
+
 ## Build a standalone Linux x86-64 executable
 
 ```sh
-nix build --out-link dist
-./dist/kmet-extensions --version
-cp dist/kmet-extensions /path/to/destination/kmet-extensions
+nix build .#standalone
+./result/bin/kmet-extensions --version
+cp result/bin/kmet-extensions /path/to/destination/kmet-extensions
 ```
 
-On Linux x86-64, the default build (also `nix build .#standalone`) produces
+On Linux x86-64, `nix build .#standalone` produces
 one approximately 76 MiB executable: static Babashka 1.13.226 with kmet,
 its Clojure dependencies, and all seven extensions appended as a JAR. Copy
-the executable itself, not the `dist` symlink. `--out-link dist` names the
-output link; plain `nix build` uses Nix's default `result` name. The destination needs no
-Nix, Java, Babashka installation, or companion source files. The build rejects
-Nix-store runtime references. Other systems still default to the Nix launcher;
-portable binaries are currently supported only for Linux x86-64.
+the executable itself, not the `result` symlink. The destination needs no
+Nix, Java, Babashka installation, or companion source files. Portable binaries
+are currently supported only for Linux x86-64.
 
 The executable preserves the working directory and uses normal kmet
 settings/authentication. Embedded extension files are extracted into a private

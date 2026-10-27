@@ -53,9 +53,9 @@
               tar xf ${staticBabashka}
               TZ=UTC bb --config /dev/null ${./scripts/package-standalone.bb} \
                 ${host}/share/kmet/kmet.jar ${self} payload.jar
-              mkdir -p "$out"
-              cat bb payload.jar > "$out/kmet-extensions"
-              chmod +x "$out/kmet-extensions"
+              mkdir -p "$out/bin"
+              cat bb payload.jar > "$out/bin/kmet-extensions"
+              chmod +x "$out/bin/kmet-extensions"
             '';
             installPhase = "true";
           };
@@ -106,7 +106,7 @@
             mkdir -p home scratch
             export HOME="$PWD/home"
             export TMPDIR="$PWD/scratch"
-            cp ${standalone}/kmet-extensions ./kmet-extensions
+            cp ${standalone}/bin/kmet-extensions ./kmet-extensions
             env PATH=/nonexistent ./kmet-extensions --version | grep -F 'kmet dev-g${builtins.substring 0 8 kmet.rev}'
             env PATH=/nonexistent ./kmet-extensions --help | grep -F 'Usage: kmet'
             test -z "$(ls -A scratch)"
@@ -123,7 +123,7 @@
     in {
       packages = forAllSystems (system:
         let built = perSystem system;
-        in { launcher = built.package; default = if system == "x86_64-linux" then built.standalone else built.package; }
+        in { launcher = built.package; default = built.package; }
           // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") { standalone = built.standalone; });
       checks = forAllSystems (system:
         { startup = (perSystem system).smoke; }
