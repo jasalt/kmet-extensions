@@ -48,7 +48,7 @@ cd /path/to/your/project
 nix run /path/to/kmet-extensions
 ```
 
-Once the flake is pushed to GitHub, you can also run without cloning:
+You can also run without cloning:
 
 ```sh
 nix run github:jasalt/kmet-extensions
