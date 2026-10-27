@@ -1,0 +1,45 @@
+{
+  "nodes": {
+    "kmet": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793056495,
+        "narHash": "sha256-l8SIpteL5v9LQuiyC/qjXMFQWhhOgiYh8m00HFBW+6w=",
+        "owner": "kmetia",
+        "repo": "kmet-agent",
+        "rev": "214b551bdff37b4e4a74ca8d380bbb2df2fbaec7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kmetia",
+        "repo": "kmet-agent",
+        "rev": "214b551bdff37b4e4a74ca8d380bbb2df2fbaec7",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1792842277,
+        "narHash": "sha256-pGPnZGi8y9d76xNeracniXO3dsYVROEmMkMc8jD0Ihc=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "d3b13ad75cc492690728f9307e443dec9ef9a20e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "kmet": "kmet",
+        "nixpkgs": "nixpkgs"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

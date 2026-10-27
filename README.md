@@ -23,7 +23,62 @@ Each implemented extension is a standalone project: `bb.edn`, `src/` (the
 artifact root passed to `kmet install`), `test/`, `scripts/`, `README.md`, and
 occasionally `LICENSE` retaining upstream attribution.
 
-## Install
+## Run with Nix (Babashka)
+
+With Nix and flakes enabled, no separate kmet, Babashka, or Java installation
+is needed. From this checkout:
+
+```sh
+nix run
+nix run . -- --version
+nix run . -- --provider anthropic --model claude-sonnet-4-6
+```
+
+To work in another project, run the flake from that project's directory:
+
+```sh
+cd /path/to/your/project
+nix run /path/to/kmet-extensions
+```
+
+Once the flake is pushed to GitHub, you can also run without cloning:
+
+```sh
+nix run github:jasalt/kmet-extensions
+```
+
+If flakes are not enabled in your Nix configuration, add
+`--extra-experimental-features 'nix-command flakes'` to the `nix` command.
+
+The launcher uses **Babashka**, not Jolt, and enables all seven source
+extensions for this process, including the work-in-progress `schedule` port.
+It preserves your current directory and existing kmet settings, authentication,
+and sessions (`~/.kmet/agent`, or `KMET_CODING_AGENT_DIR`). It does not install
+extensions into your settings. Existing configured extensions are still loaded;
+avoid installing a second copy of these extensions under another path.
+Credentials are still required for providers and Pushover. `/reload` reads the
+same immutable Nix-store extension sources; restart `nix run` after source edits.
+
+`flake.lock` pins nixpkgs (including Babashka) and kmet. The initial kmet pin is
+`214b551bdff37b4e4a74ca8d380bbb2df2fbaec7`. Nix fetches Maven dependencies with
+a content hash and builds kmet's Babashka uberjar; Java is a build-time tool
+only. First launch downloads/builds dependencies; later launches reuse the
+Nix store, without Maven resolution at startup. Linux and macOS on x86-64 and
+ARM64 are exposed; Linux x86-64 was tested.
+
+Maintainers: update nixpkgs with `nix flake update nixpkgs`. To update kmet,
+change `inputs.kmet.url` in `flake.nix`, run `nix flake update kmet`, then
+`nix build`. If its dependencies changed, temporarily set the Maven
+`outputHash` to `pkgs.lib.fakeHash`, build, and replace it with the reported
+`got: sha256-…` hash. Commit both `flake.nix` and `flake.lock`. Validate with:
+
+```sh
+nix flake check
+nix run . -- --version
+nix run . -- --help
+```
+
+## Install into an existing kmet
 
 ```sh
 bb start install ../kmet-extensions/<name>/src    # from the kmet checkout
