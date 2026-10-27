@@ -16,10 +16,10 @@
       perSystem = system:
         let
           pkgs = import nixpkgs { inherit system; };
-          extensionNames = [
-            "codex-usage" "imgview" "nofity-pushover" "pins"
-            "savelast" "schedule" "session-migrate"
-          ];
+          extensionNames = builtins.filter
+            (name: (builtins.readDir ./extensions).${name} == "directory"
+              && builtins.pathExists (./extensions + "/${name}/src/extension.edn"))
+            (builtins.attrNames (builtins.readDir ./extensions));
           # Resolve precisely the pinned host's bb.edn dependencies. This is a
           # fixed-output fetch: the subsequent build and launcher need no Maven.
           maven = pkgs.stdenvNoCC.mkDerivation {
@@ -84,7 +84,7 @@
             ;; Add immutable extension paths to the loaded configuration only;
             ;; never write the user's settings or change the project cwd.
             (let [resolve-items packages/resolve-package-items
-                  paths [${pkgs.lib.concatMapStringsSep " " (name: ''"${self}/${name}/src"'') extensionNames}]]
+                  paths [${pkgs.lib.concatMapStringsSep " " (name: ''"${self}/extensions/${name}"'') extensionNames}]]
               (with-redefs [packages/resolve-package-items
                             (fn [user-settings & args]
                               (apply resolve-items

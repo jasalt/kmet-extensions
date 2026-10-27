@@ -3,10 +3,6 @@
          '[clojure.java.io :as io]
          '[clojure.string :as str])
 
-(def extension-names
-  ["codex-usage" "imgview" "nofity-pushover" "pins"
-   "savelast" "schedule" "session-migrate"])
-
 (defn put! [archive name input]
   ;; Fixed ZIP timestamps keep builds independent of the clock and file mtimes.
   (let [entry (java.util.zip.ZipEntry. name)]
@@ -19,8 +15,8 @@
       sources (java.io.ByteArrayOutputStream.)]
   (assert (and host root output) "Usage: package-standalone.bb HOST-JAR ROOT OUTPUT")
   (with-open [archive (java.util.zip.ZipOutputStream. sources)]
-    (doseq [name extension-names
-            path (sort (fs/glob (fs/path root name "src") "**"))
+    (doseq [manifest (sort (fs/glob (fs/path root "extensions") "*/src/extension.edn"))
+            path (sort (fs/glob (fs/parent manifest) "**"))
             :when (fs/regular-file? path)]
       (with-open [input (io/input-stream (fs/file path))]
         (put! archive (str/replace (str (fs/relativize root path)) "\\" "/") input))))

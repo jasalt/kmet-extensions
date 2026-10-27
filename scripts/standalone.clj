@@ -5,10 +5,6 @@
             [kmet.app.packages :as packages]
             [kmet.libs.archive :as archive]))
 
-(def extension-names
-  ["codex-usage" "imgview" "nofity-pushover" "pins"
-   "savelast" "schedule" "session-migrate"])
-
 (defn run [args]
   ;; A private per-process directory avoids cache races and stale sources. The
   ;; loader gets real files (including schedule's skill), with no store paths.
@@ -21,7 +17,8 @@
         (io/copy in out))
       (archive/extract-zip! (str zip) (str dir))
       (fs/delete zip)
-      (let [paths (mapv #(str (fs/path dir % "src")) extension-names)]
+      (let [paths (mapv #(str (fs/parent (fs/parent %)))
+                        (sort (fs/glob (fs/path dir "extensions") "*/src/extension.edn")))]
         (with-redefs [packages/resolve-package-items
                       (fn [user-settings & more]
                         (apply resolve-items

@@ -5,8 +5,8 @@
          '[kmet.app.test-support :as support])
 
 (let [root (fs/parent (fs/parent (fs/absolutize *file*)))
-      manifests (sort (fs/glob root "*/src/extension.edn"))]
-  (assert (= 7 (count manifests)) "Expected seven source extensions")
+      manifests (sort (fs/glob (fs/path root "extensions") "*/src/extension.edn"))]
+  (assert (seq manifests) "No extension manifests found under extensions/")
   (support/with-composition
    (fn []
      (doseq [manifest manifests]

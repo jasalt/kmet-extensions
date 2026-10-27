@@ -1,5 +1,5 @@
-/schedule/target/
-/schedule/.kmet/
+/extensions/schedule/target/
+/extensions/schedule/.kmet/
 /dist
 /result
 /result-*
