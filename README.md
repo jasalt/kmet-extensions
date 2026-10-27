@@ -78,6 +78,40 @@ nix run . -- --version
 nix run . -- --help
 ```
 
+## Build a standalone Linux x86-64 executable
+
+```sh
+nix build --out-link dist
+./dist/kmet-extensions --version
+cp dist/kmet-extensions /path/to/destination/kmet-extensions
+```
+
+On Linux x86-64, the default build (also `nix build .#standalone`) produces
+one approximately 76 MiB executable: static Babashka 1.13.226 with kmet,
+its Clojure dependencies, and all seven extensions appended as a JAR. Copy
+the executable itself, not the `dist` symlink. `--out-link dist` names the
+output link; plain `nix build` uses Nix's default `result` name. The destination needs no
+Nix, Java, Babashka installation, or companion source files. The build rejects
+Nix-store runtime references. Other systems still default to the Nix launcher;
+portable binaries are currently supported only for Linux x86-64.
+
+The executable preserves the working directory and uses normal kmet
+settings/authentication. Embedded extension files are extracted into a private
+per-process temporary directory (`TMPDIR`, or the system default) and deleted
+on normal exit; a forced kill can leave that directory behind. `/reload`
+continues to use those extracted files. Launch a newly built binary to update
+extensions. System CA certificates/network access and provider credentials
+are still needed for HTTPS; agent operations need external programs such as
+Bash, Git, and ripgrep as appropriate. Those programs are **not** embedded.
+
+`nix run` deliberately retains the Nix-managed launcher with its supporting
+tools on `PATH`; `nix build .#launcher` builds that launcher explicitly.
+`nix flake check` tests both launchers on Linux x86-64, including executing a
+copied standalone binary with an empty tool search path and checking temporary
+file cleanup. A manual isolated test also verified `--version` with no
+`/nix/store` mounted. Interactive/network behavior on other Linux distributions
+has not yet been tested.
+
 ## Install into an existing kmet
 
 ```sh

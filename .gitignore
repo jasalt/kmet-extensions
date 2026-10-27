@@ -1,2 +1,5 @@
 /schedule/target/
 /schedule/.kmet/
+/dist
+/result
+/result-*

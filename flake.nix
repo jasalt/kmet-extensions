@@ -38,6 +38,27 @@
             outputHashAlgo = "sha256";
             outputHash = "sha256-VjJTrIsBptBqgKJByIq9JYoHh/H8/q5geHP3zs1pn2c=";
           };
+          staticBabashka = pkgs.fetchurl {
+            url = "https://github.com/babashka/babashka/releases/download/v1.13.226/babashka-1.13.226-linux-amd64-static.tar.gz";
+            hash = "sha256-v4npCcQCXt8tZpkhyBEHQ1tyRIQNj0MG9YQ5wyijQvk=";
+          };
+          standalone = pkgs.stdenvNoCC.mkDerivation {
+            pname = "kmet-extensions-standalone";
+            version = "214b551b";
+            nativeBuildInputs = [ pkgs.babashka ];
+            dontUnpack = true;
+            dontFixup = true; # Never patch the static ELF or its appended ZIP.
+            allowedReferences = [ ]; # Fail if a Nix store dependency leaks in.
+            buildPhase = ''
+              tar xf ${staticBabashka}
+              TZ=UTC bb --config /dev/null ${./scripts/package-standalone.bb} \
+                ${host}/share/kmet/kmet.jar ${self} payload.jar
+              mkdir -p "$out"
+              cat bb payload.jar > "$out/kmet-extensions"
+              chmod +x "$out/kmet-extensions"
+            '';
+            installPhase = "true";
+          };
           host = pkgs.stdenvNoCC.mkDerivation {
             pname = "kmet-bb";
             version = "214b551b";
@@ -80,7 +101,17 @@
             '';
           };
         in {
-          inherit package;
+          inherit package standalone;
+          portableSmoke = pkgs.runCommand "kmet-extensions-portable-smoke" { } ''
+            mkdir -p home scratch
+            export HOME="$PWD/home"
+            export TMPDIR="$PWD/scratch"
+            cp ${standalone}/kmet-extensions ./kmet-extensions
+            env PATH=/nonexistent ./kmet-extensions --version | grep -F 'kmet dev-g${builtins.substring 0 8 kmet.rev}'
+            env PATH=/nonexistent ./kmet-extensions --help | grep -F 'Usage: kmet'
+            test -z "$(ls -A scratch)"
+            touch "$out"
+          '';
           smoke = pkgs.runCommand "kmet-extensions-smoke" { } ''
             export HOME="$TMPDIR/home"
             mkdir -p "$HOME"
@@ -90,13 +121,20 @@
           '';
         };
     in {
-      packages = forAllSystems (system: { default = (perSystem system).package; });
-      checks = forAllSystems (system: { startup = (perSystem system).smoke; });
+      packages = forAllSystems (system:
+        let built = perSystem system;
+        in { launcher = built.package; default = if system == "x86_64-linux" then built.standalone else built.package; }
+          // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") { standalone = built.standalone; });
+      checks = forAllSystems (system:
+        { startup = (perSystem system).smoke; }
+        // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+          standalone = (perSystem system).portableSmoke;
+        });
       apps = forAllSystems (system: {
         default = {
           type = "app";
           meta.description = "Run pinned kmet on Babashka with all seven extensions";
-          program = "${self.packages.${system}.default}/bin/kmet-extensions";
+          program = "${self.packages.${system}.launcher}/bin/kmet-extensions";
         };
       });
     };
