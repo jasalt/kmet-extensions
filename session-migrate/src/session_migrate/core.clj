@@ -110,3 +110,10 @@
   [_api]
   (when-let [lifecycle @active-lifecycle]
     (swap! lifecycle assoc :closed? true)))
+
+(def plugin
+  "Extension lifecycle entry point; registrations belong to the plugin mount."
+  {:name :ext/session-migrate
+   :apply (fn [_ctx api]
+            (init api)
+            nil)})

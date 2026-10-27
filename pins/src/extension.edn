@@ -1,1 +1,1 @@
-{:name "pins" :entry pins.core :loader [:jolt :sci]}
+{:name "pins" :plugin pins.core/plugin :loader [:jolt :sci]}

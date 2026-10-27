@@ -60,3 +60,10 @@
     (when-let [skill (load-skill api)]
       (ext/register-skill! api skill {:location (str "schedule:" skill-resource)}))
     r))
+
+(def plugin
+  "Extension lifecycle entry point; registrations belong to the plugin mount."
+  {:name :ext/schedule
+   :apply (fn [_ctx api]
+            (init api)
+            nil)})

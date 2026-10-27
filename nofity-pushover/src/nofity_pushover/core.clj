@@ -169,3 +169,10 @@
   "Remove this extension's footer status; registered capabilities unload automatically."
   [api]
   (ext/ui-set-status api status-key nil))
+
+(def plugin
+  "Extension lifecycle entry point; registrations belong to the plugin mount."
+  {:name :ext/nofity-pushover
+   :apply (fn [_ctx api]
+            (init api)
+            nil)})

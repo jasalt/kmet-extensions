@@ -1,1 +1,1 @@
-{:name "schedule", :entry schedule.core, :loader [:jolt :sci]}
+{:name "schedule", :plugin schedule.core/plugin, :loader [:jolt :sci]}

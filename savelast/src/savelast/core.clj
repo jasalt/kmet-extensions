@@ -47,3 +47,10 @@
                           :description "Save the last agent message to a file (usage: /savelast [path])"
                           :argument-hint "[path]"
                           :handler (fn [ctx args] (save-last! api ctx args))}))
+
+(def plugin
+  "Extension lifecycle entry point; registrations belong to the plugin mount."
+  {:name :ext/savelast
+   :apply (fn [_ctx api]
+            (init api)
+            nil)})

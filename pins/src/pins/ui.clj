@@ -1,7 +1,8 @@
 (ns pins.ui
   "Borderless full-width pin browser and recent-message picker."
-  (:require [kmet.libs.reakt :as r]
-            [kmet.tui.hiccup :as h]
+  (:require [kmet.libs.hikap.core :as hikap]
+            [kmet.libs.reakt.core :as r]
+            [kmet.tui.hikap :as h]
             [kmet.tui.keys :as keys]
             [kmet.tui.protocols :as p]
             [kmet.tui.terminal :as terminal]
@@ -123,7 +124,7 @@
   "Return the candidate by numeric identity, not its possibly duplicated preview label."
   [candidates size-fn close]
   (let [height (atom (:height (size-fn)))
-        list-ref (h/ref)
+        list-ref (hikap/ref)
         disposed? (atom false)
         items (mapv (fn [i {:keys [text ago]}]
                       {:value i :label (str (if (= ago 1) "last" (str ago " back"))

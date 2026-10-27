@@ -30,3 +30,17 @@ bb start install ../kmet-extensions/<name>/src    # from the kmet checkout
 ```
 
 Add `--local` for project scope, then restart kmet or run `/reload`.
+
+All seven source extensions use the current plugin contract: `extension.edn`
+names `:plugin <namespace>/plugin`, whose `:apply` registers capabilities.
+The `init` functions remain internal registration helpers; the host does not
+call them directly. UI imports use the split reakt/hikap namespaces.
+
+Check startup, unload, and reload for every source extension from a current
+kmet checkout (requires its test source roots):
+
+```sh
+bb ../kmet-extensions/scripts/startup-smoke.bb
+```
+
+This offline SCI check does not exercise network calls or native Jolt.

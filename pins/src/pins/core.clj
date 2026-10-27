@@ -133,3 +133,10 @@
   [_api]
   (when-let [active @runtime] (close-dialog! active))
   (reset! runtime nil))
+
+(def plugin
+  "Extension lifecycle entry point; registrations belong to the plugin mount."
+  {:name :ext/pins
+   :apply (fn [_ctx api]
+            (init api)
+            nil)})

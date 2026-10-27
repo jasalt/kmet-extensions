@@ -4,9 +4,9 @@
             [imgview.codec :as codec]
             [imgview.utils :as utils]
             [kmet.extension :as ext]
-            [kmet.libs.reakt :as r]
+            [kmet.libs.reakt.core :as r]
             [kmet.libs.terminal-image :as terminal-image]
-            [kmet.tui.hiccup :as h]
+            [kmet.tui.hikap :as h]
             [kmet.tui.theme :as theme]))
 
 (def soft-max-bytes
@@ -185,3 +185,10 @@
                            {:name command :description (str description ": /" command " <path|url|data:uri>")
                             :argument-hint "<path|url|data:uri>"
                             :handler (fn [ctx args] (user-command! api command mode ctx args))})))
+
+(def plugin
+  "Extension lifecycle entry point; registrations belong to the plugin mount."
+  {:name :ext/imgview
+   :apply (fn [_ctx api]
+            (init api)
+            nil)})

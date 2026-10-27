@@ -1,1 +1,1 @@
-{:name "codex-usage", :entry codex-usage.core, :loader [:jolt :sci]}
+{:name "codex-usage", :plugin codex-usage.core/plugin, :loader [:jolt :sci]}

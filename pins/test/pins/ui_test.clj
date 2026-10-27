@@ -1,7 +1,7 @@
 (ns pins.ui-test
   (:require [clojure.string :as str]
             [clojure.test :refer [deftest is]]
-            [kmet.tui.hiccup :as h]
+            [kmet.libs.hikap.core :as h]
             [kmet.tui.theme :as theme]
             [kmet.tui.utils :as u]
             [pins.ui :as ui]))

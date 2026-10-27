@@ -217,3 +217,10 @@
                                     (when-let [g (reserve ctx)] [ctx g])))]
                (refresh ctx false g))
              (recur))))))))
+
+(def plugin
+  "Extension lifecycle entry point; registrations belong to the plugin mount."
+  {:name :ext/codex-usage
+   :apply (fn [_ctx api]
+            (init api)
+            nil)})
