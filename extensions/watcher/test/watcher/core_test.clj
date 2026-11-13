@@ -99,12 +99,12 @@
         api {:get-agent-dir (constantly dir)
              :register-command! (fn [_])
              :on-event (fn [event f] (swap! handlers assoc event f))
-             :ui {:set-status (fn [_ text] (when text (swap! ticks inc))) :notify (fn [& _])}}]
+             :ui {:set-status (fn [& _]) :notify (fn [& _])}}]
     (try
       (fs/create-dirs (str dir "/.kmet/extensions"))
       (spit (str dir "/.kmet/extensions/watcher.json") "{\"pollMs\":100}")
       (core/init api)
-      ((:session-start @handlers) nil {:cwd dir :has-ui true :is-idle (constantly true)})
+      ((:session-start @handlers) nil {:cwd dir :has-ui true :is-idle #(do (swap! ticks inc) true)})
       (Thread/sleep 350)
       (is (pos? @ticks) "loop polls before unload")
       (is (ifn? (resolve 'watcher.core/shutdown)) "host unload hook exists")
@@ -115,6 +115,19 @@
       (finally
         (some-> (:session-shutdown @handlers) (apply [nil nil]))
         (fs/delete-tree dir)))))
+
+(deftest status-only-on-change
+  (let [calls (atom []) api {:ui {:set-status (fn [k t] (swap! calls conj t))}}
+        state (atom {:config {:enabled true}})]
+    (core/status! api state)
+    (core/status! api state)
+    (is (= ["watcher on"] @calls) "unchanged status is not resent")
+    (swap! state assoc :error "x")
+    (core/status! api state)
+    (core/stop! api state)
+    (swap! state dissoc :error)
+    (core/status! api state)
+    (is (= ["watcher on" "watcher error" nil "watcher on"] @calls) "stop clears and forgets")))
 
 (deftest ignore-globs
   ;; `dir/**` globs are enforced by directory pruning, so only the rest run per file.
