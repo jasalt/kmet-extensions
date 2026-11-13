@@ -139,7 +139,7 @@
 
 (deftest ignore-globs
   ;; `dir/**` globs are enforced by directory pruning, so only the rest run per file.
-  (is (= ["**/*.log"] (some-> (resolve 'watcher.files/file-globs) (apply [["**/x/**" "**/*.log"]]))))
+  (is (= ["**/*.log"] (files/file-globs ["**/x/**" "**/*.log"])))
   (let [dir (str (fs/create-temp-dir))
         cfg (assoc files/defaults :ignore ["**/x/**" "**/*.log"])]
     (try
