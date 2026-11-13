@@ -12,8 +12,21 @@ From a kmet checkout:
 bb start install ../kmet-extensions/extensions/watcher/src
 ```
 
-Add `--local` for project scope. Restart kmet or `/reload`. This collection's
-launcher discovers the extension automatically. Uses the SCI loader; no extra
+Add `--local` for project scope. Installation makes watcher available but does
+not activate it. Run `kmet plugins`, enable `watcher` in the global scope, then
+restart kmet. For project-only activation, use `kmet plugins --local` instead.
+`/reload` only reloads already-mounted extension rows; it does not activate a
+newly installed extension.
+
+Alternatively, merge this row into `~/.kmet/agent/patch.edn` (preserving any
+existing rows and patches), then restart:
+
+```clojure
+{:rows [{:id :ext/watcher :plugin :ext/watcher}]}
+```
+
+This collection's launcher makes extensions discoverable automatically, but
+activation still requires a composition row. Uses the SCI loader; no extra
 runtime dependencies. Native Jolt execution has not been verified.
 
 In interactive sessions it starts automatically unless disabled. Save a file:
