@@ -1,12 +1,12 @@
 (ns pins.ui
   "Borderless full-width pin browser and recent-message picker."
-  (:require [kmet.libs.hikap.core :as hikap]
-            [kmet.libs.reakt.core :as r]
+  (:require [kmet.hikap.core :as hikap]
+            [kmet.reakt.core :as r]
             [kmet.tui.hikap :as h]
             [kmet.tui.keys :as keys]
             [kmet.tui.protocols :as p]
             [kmet.tui.terminal :as terminal]
-            [kmet.tui.theme :as theme]
+            [kmet.libs.theme :as theme]
             [kmet.tui.utils :as u]
             [pins.model :as model]))
 

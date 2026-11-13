@@ -42,7 +42,7 @@
                          (swap! handlers update type (fnil conj []) handler)
                          (fn [] (swap! handlers update type
                                        (fn [hs] (remove #(identical? % handler) hs)))))
-             :on-tool-call (fn [hook]
+             :on-tool (fn [hook]
                              (swap! handlers update :tool-call (fnil conj []) hook)
                              (fn [] (swap! handlers update :tool-call
                                            (fn [hs] (remove #(identical? % hook) hs)))))

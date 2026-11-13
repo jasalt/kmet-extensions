@@ -4,10 +4,10 @@
             [imgview.codec :as codec]
             [imgview.utils :as utils]
             [kmet.extension :as ext]
-            [kmet.libs.reakt.core :as r]
+            [kmet.reakt.core :as r]
             [kmet.libs.terminal-image :as terminal-image]
             [kmet.tui.hikap :as h]
-            [kmet.tui.theme :as theme]))
+            [kmet.libs.theme :as theme]))
 
 (def soft-max-bytes
   "Warn-only context-size threshold; images are not resized or rejected above it."

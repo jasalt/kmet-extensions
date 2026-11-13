@@ -7,7 +7,7 @@
             [kmet.libs.crypto :as crypto]
             [kmet.libs.json :as json]
             [kmet.libs.http :as http]
-            [kmet.tui.theme :as theme]))
+            [kmet.libs.theme :as theme]))
 
 (def ^:private usage-url "https://chatgpt.com/backend-api/wham/usage")
 (def ^:private credits-url "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits")

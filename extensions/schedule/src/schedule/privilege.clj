@@ -94,8 +94,9 @@
                                                                   (subvec (:pending s) (inc idx)))
                                                             (:pending s))))))
                                nil))
-  (ext/on-tool-call api
-                    (fn [{:keys [tool-name args]}]
+  (ext/on-tool api
+               (fn [op next]
+                 (or ((fn [{:keys [tool-name args]}]
                       (let [tier (peek (:stack @state))]
                         (when (and tier (not= :mutate tier))
                           (let [tool (str/lower-case (str tool-name))
@@ -122,7 +123,8 @@
                               (and (= :suggest tier) (contains? exec-surfaces tool))
                               (block (str "[schedule] blocked " tool-name ": active scheduled job is tier=suggest (no shell/exec)"))
 
-                              :else nil))))))
+                              :else nil))))) op)
+                     (next op))))
   (ext/on-event api :agent-settled
                 (fn [_event _ctx]
                   (swap! state assoc :stack [])))

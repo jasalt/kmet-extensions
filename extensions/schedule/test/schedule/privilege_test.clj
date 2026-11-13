@@ -11,7 +11,7 @@
         event-handlers (atom {})
         starts (atom [])
         api {:on-before-agent-start (fn [hook] (swap! starts conj hook) (fn [] nil))
-             :on-tool-call (fn [hook] (swap! tool-hooks conj hook) (fn [] nil))
+             :on-tool (fn [hook] (swap! tool-hooks conj hook) (fn [] nil))
              :on-event (fn [type handler]
                          (swap! event-handlers update type (fnil conj []) handler)
                          (fn [] nil))}
@@ -25,7 +25,7 @@
 (defn call-tool
   "Invoke the captured tool-call hook with a raw string-keyed payload."
   [hook tool-name args]
-  (hook {:tool-name tool-name :args args}))
+  (hook {:tool-name tool-name :args args} (constantly nil)))
 
 (deftest read-only-is-strict
   (let [{:keys [state tool-hook]} (attach-to-fake)]

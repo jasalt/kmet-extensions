@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     kmet = {
-      url = "github:kmetia/kmet-agent/214b551bdff37b4e4a74ca8d380bbb2df2fbaec7";
+      url = "github:kmetia/kmet-agent/v0.3.1";
       flake = false;
     };
   };
@@ -39,12 +39,12 @@
             outputHash = "sha256-VjJTrIsBptBqgKJByIq9JYoHh/H8/q5geHP3zs1pn2c=";
           };
           staticBabashka = pkgs.fetchurl {
-            url = "https://github.com/babashka/babashka/releases/download/v1.13.226/babashka-1.13.226-linux-amd64-static.tar.gz";
-            hash = "sha256-v4npCcQCXt8tZpkhyBEHQ1tyRIQNj0MG9YQ5wyijQvk=";
+            url = "https://github.com/babashka/babashka/releases/download/v1.13.229/babashka-1.13.229-linux-amd64-static.tar.gz";
+            hash = "sha256-ZPuYSZHG5o9E6Kk5EXapu0Efm5rplZprylMHx1p0FNo=";
           };
           standalone = pkgs.stdenvNoCC.mkDerivation {
             pname = "kmet-extensions-standalone";
-            version = "214b551b";
+            version = "0.3.1";
             nativeBuildInputs = [ pkgs.babashka ];
             dontUnpack = true;
             dontFixup = true; # Never patch the static ELF or its appended ZIP.
@@ -61,7 +61,7 @@
           };
           host = pkgs.stdenvNoCC.mkDerivation {
             pname = "kmet-bb";
-            version = "214b551b";
+            version = "0.3.1";
             src = kmet;
             nativeBuildInputs = [ pkgs.babashka ];
             buildPhase = ''
@@ -70,7 +70,7 @@
               # --classpath bypasses bb.edn dependency resolution entirely.
               cp=$(find ${maven} -name '*.jar' -print | paste -sd:)
               roots=$(bb --config /dev/null -e '(require (quote clojure.edn) (quote clojure.string)) (println (clojure.string/join ":" (:paths (clojure.edn/read-string (slurp "bb.edn")))))')
-              bb --config /dev/null --classpath "$roots:$cp" -e '(require (quote kmet.tasks.build) (quote kmet.app.version)) (with-redefs [kmet.app.version/checkout-version (constantly "dev-g${builtins.substring 0 8 kmet.rev}")] (kmet.tasks.build/uberjar*))'
+              bb --config /dev/null --classpath "$roots:$cp" -e '(require (quote kmet.tasks.build) (quote kmet.app.version)) (with-redefs [kmet.app.version/checkout-version (constantly "v0.3.1")] (kmet.tasks.build/uberjar*))'
             '';
             installPhase = ''
               mkdir -p "$out/share/kmet"
@@ -107,7 +107,7 @@
             export HOME="$PWD/home"
             export TMPDIR="$PWD/scratch"
             cp ${standalone}/bin/kmet-extensions ./kmet-extensions
-            env PATH=/nonexistent ./kmet-extensions --version | grep -F 'kmet dev-g${builtins.substring 0 8 kmet.rev}'
+            env PATH=/nonexistent ./kmet-extensions --version | grep -Fx 'kmet v0.3.1'
             env PATH=/nonexistent ./kmet-extensions --help | grep -F 'Usage: kmet'
             test -z "$(ls -A scratch)"
             touch "$out"
@@ -115,7 +115,7 @@
           smoke = pkgs.runCommand "kmet-extensions-smoke" { } ''
             export HOME="$TMPDIR/home"
             mkdir -p "$HOME"
-            ${package}/bin/kmet-extensions --version | grep -F 'kmet dev-g${builtins.substring 0 8 kmet.rev}'
+            ${package}/bin/kmet-extensions --version | grep -Fx 'kmet v0.3.1'
             ${package}/bin/kmet-extensions --help | grep -F 'Usage: kmet'
             touch "$out"
           '';

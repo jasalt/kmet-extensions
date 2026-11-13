@@ -4,8 +4,8 @@
   (:require [babashka.fs :as fs]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [kmet.libs.aws-sigv4 :as hash]
-            [kmet.libs.json :as json]))
+            [kmet.libs.json :as json])
+  (:import [java.security MessageDigest]))
 
 (def max-bytes (* 256 1024 1024))
 (def max-line-bytes (* 32 1024 1024))
@@ -23,9 +23,11 @@
     (throw (ex-info "Session migration cancelled" {:type :session-migrate-cancelled}))))
 
 (defn sha256
-  "SHA-256 of an already validated UTF-8 string, through the shared host library."
+  "SHA-256 of an already validated UTF-8 string."
   [s]
-  (hash/sha256-hex s))
+  (apply str (map #(format "%02x" (bit-and 255 %))
+                  (.digest (MessageDigest/getInstance "SHA-256")
+                           (.getBytes s "UTF-8")))))
 
 (defn valid-utf8?
   "Reject overlong sequences, surrogate encodings, truncation and >U+10FFFF.

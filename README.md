@@ -66,8 +66,9 @@ avoid installing a second copy of these extensions under another path.
 Credentials are still required for providers and Pushover. `/reload` reads the
 same immutable Nix-store extension sources; restart `nix run` after source edits.
 
-`flake.lock` pins nixpkgs (including Babashka) and kmet. The initial kmet pin is
-`214b551bdff37b4e4a74ca8d380bbb2df2fbaec7`. Nix fetches Maven dependencies with
+`flake.lock` pins nixpkgs (including Babashka 1.13.229) and upstream kmet
+**v0.3.1** (`a1712881b23e614c1913d7e53a49ba24bce3e8fa`). The launcher and
+standalone artifact both report `kmet v0.3.1`. Nix fetches Maven dependencies with
 a content hash and builds kmet's Babashka uberjar; Java is a build-time tool
 only. First launch downloads/builds dependencies; later launches reuse the
 Nix store, without Maven resolution at startup. Linux and macOS on x86-64 and
@@ -119,7 +120,7 @@ cp result/bin/kmet-extensions /path/to/destination/kmet-extensions
 ```
 
 On Linux x86-64, `nix build .#standalone` produces
-one approximately 76 MiB executable: static Babashka 1.13.226 with kmet,
+one approximately 76 MiB executable: static Babashka 1.13.229 with kmet,
 its Clojure dependencies, and all seven extensions appended as a JAR. Copy
 the executable itself, not the `result` symlink. The destination needs no
 Nix, Java, Babashka installation, or companion source files. Portable binaries
@@ -149,6 +150,12 @@ bb start install ../kmet-extensions/extensions/<name>/src    # from the kmet che
 ```
 
 Add `--local` for project scope, then restart kmet or run `/reload`.
+
+The v0.3.1 upgrade uses the shared `kmet.libs.theme`, `kmet.reakt.*` and
+`kmet.hikap.*` namespaces. Schedule privilege enforcement uses `ext/on-tool`
+middleware: blocked calls never invoke `next`; allowed calls invoke it once.
+Session migration computes SHA-256 directly rather than importing a private
+host authentication helper.
 
 All seven source extensions use the current plugin contract: `extension.edn`
 names `:plugin <namespace>/plugin`, whose `:apply` registers capabilities.

@@ -7,7 +7,7 @@
             [imgview.utils :as utils]
             [kmet.extension :as ext]
             [kmet.libs.terminal-image :as terminal-image]
-            [kmet.libs.hikap.core :as h]
+            [kmet.hikap.core :as h]
             [kmet.tui.protocols :as protocols]))
 
 (def ^:private fixture (atom nil))

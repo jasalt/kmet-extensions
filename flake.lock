@@ -3,27 +3,27 @@
     "kmet": {
       "flake": false,
       "locked": {
-        "lastModified": 1793056495,
-        "narHash": "sha256-l8SIpteL5v9LQuiyC/qjXMFQWhhOgiYh8m00HFBW+6w=",
+        "lastModified": 1794437406,
+        "narHash": "sha256-KhvxiPMLb7SKNCl0HdrnUelz8OthnLM51P9lfq+HTj4=",
         "owner": "kmetia",
         "repo": "kmet-agent",
-        "rev": "214b551bdff37b4e4a74ca8d380bbb2df2fbaec7",
+        "rev": "a1712881b23e614c1913d7e53a49ba24bce3e8fa",
         "type": "github"
       },
       "original": {
         "owner": "kmetia",
+        "ref": "v0.3.1",
         "repo": "kmet-agent",
-        "rev": "214b551bdff37b4e4a74ca8d380bbb2df2fbaec7",
         "type": "github"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1792842277,
-        "narHash": "sha256-pGPnZGi8y9d76xNeracniXO3dsYVROEmMkMc8jD0Ihc=",
+        "lastModified": 1794495034,
+        "narHash": "sha256-E0hYoioqUtM2XmPPvYYpJgdADF5AW9oOoPSEiM9dTHQ=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "d3b13ad75cc492690728f9307e443dec9ef9a20e",
+        "rev": "2074cc672349f14240fb7ea90d509e0b643e9dd4",
         "type": "github"
       },
       "original": {
