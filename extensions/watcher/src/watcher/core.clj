@@ -5,9 +5,10 @@
             [kmet.libs.concurrent :as concurrent]
             [watcher.files :as files]))
 
+(defn- ask [ctx k] (when-let [f (k ctx)] (f)))
+
 (defn idle? [ctx]
-  (and (fn? (:is-idle ctx)) ((:is-idle ctx))
-       (not (and (fn? (:has-pending-messages ctx)) ((:has-pending-messages ctx))))))
+  (and (ask ctx :is-idle) (not (ask ctx :has-pending-messages))))
 
 (defn status!
   "Show watcher state in the footer; skip the host call when unchanged."
