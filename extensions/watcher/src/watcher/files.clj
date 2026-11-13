@@ -38,14 +38,10 @@
 
 (defn glob-regex [glob]
   (re-pattern
-   (str "^" (loop [s glob out ""]
-               (cond
-                 (empty? s) out
-                 (str/starts-with? s "**/") (recur (subs s 3) (str out "(?:.*/)?"))
-                 (str/starts-with? s "**") (recur (subs s 2) (str out ".*"))
-                 (= (first s) \*) (recur (subs s 1) (str out "[^/]*"))
-                 (= (first s) \?) (recur (subs s 1) (str out "[^/]"))
-                 :else (recur (subs s 1) (str out (java.util.regex.Pattern/quote (subs s 0 1)))))) "$")))
+   (str "^" (apply str (for [t (re-seq #"\*\*/|\*\*|\*|\?|[^*?]+" glob)]
+                         (case t "**/" "(?:.*/)?" "**" ".*" "*" "[^/]*" "?" "[^/]"
+                               (java.util.regex.Pattern/quote t))))
+        "$")))
 
 (defn file-globs
   "Ignore globs that need a per-file check; `dir/**` globs are enforced by pruning."
