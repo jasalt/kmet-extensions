@@ -1,0 +1,8 @@
+;; Etaoin's JSON, HTTP and logging dependencies are not portable to kmet's SCI
+;; extension host: Cheshire needs Jackson reflection, babashka.http-client is
+;; blocked in extensions, and tools.logging needs `agent`. They are excluded and
+;; replaced by the small shims under src/ (cheshire/, babashka/, clojure/).
+{:deps {etaoin/etaoin {:mvn/version "1.1.43"
+                       :exclusions [cheshire/cheshire
+                                    org.babashka/http-client
+                                    org.clojure/tools.logging]}}}
