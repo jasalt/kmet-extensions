@@ -129,6 +129,14 @@
     (core/status! api state)
     (is (= ["watcher on" "watcher error" nil "watcher on"] @calls) "stop clears and forgets")))
 
+(deftest glob-regex
+  (is (= "^(?:.*/)?\\Qa\\E[^/]*\\Q.c\\E[^/]\\Q/\\E.*$" (str (files/glob-regex "**/a*.c?/**"))))
+  (doseq [[glob yes no] [["**/*" "a/b" nil] ["**/.git/**" ".git/x" "x.git/y"]
+                         ["src/*.clj" "src/a.clj" "src/a/b.clj"] ["a?c" "abc" "a/c"]
+                         ["a.b" "a.b" "axb"] ["x**" "x/y/z" "y"]]]
+    (is (re-matches (files/glob-regex glob) yes) glob)
+    (when no (is (not (re-matches (files/glob-regex glob) no)) glob))))
+
 (deftest ignore-globs
   ;; `dir/**` globs are enforced by directory pruning, so only the rest run per file.
   (is (= ["**/*.log"] (some-> (resolve 'watcher.files/file-globs) (apply [["**/x/**" "**/*.log"]]))))
