@@ -9,11 +9,15 @@
   (and (fn? (:is-idle ctx)) ((:is-idle ctx))
        (not (and (fn? (:has-pending-messages ctx)) ((:has-pending-messages ctx))))))
 
-(defn status! [api state]
-  (let [{:keys [config pending active error]} @state]
-    (ext/ui-set-status api "watcher"
-                       (str "watcher " (cond error "error" active "dispatching"
-                                             (seq pending) "queued" (:enabled config) "on" :else "off")))))
+(defn status!
+  "Show watcher state in the footer; skip the host call when unchanged."
+  [api state]
+  (let [{:keys [config pending active error status]} @state
+        text (str "watcher " (cond error "error" active "dispatching"
+                                   (seq pending) "queued" (:enabled config) "on" :else "off"))]
+    (when (not= text status)
+      (swap! state assoc :status text)
+      (ext/ui-set-status api "watcher" text))))
 
 (defn tick!
   "Serialize scans, commands and lifecycle transitions. Always refresh queued markers."
@@ -46,7 +50,7 @@
           (status! api state))))))
 
 (defn stop! [api state]
-  (swap! state assoc :loop nil)
+  (swap! state assoc :loop nil :status nil)
   (ext/ui-set-status api "watcher" nil))
 
 (defn start-loop!
