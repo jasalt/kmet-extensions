@@ -67,7 +67,7 @@
   (try
     (let [source (slurp path)]
       (when (and (re-find marker-re source) (not (str/includes? source "\u0000")))
-        (let [lines (str/split source #"\r\n|\n|\r" -1)]
+        (let [lines (parser/lines source)]
           (mapv #(assoc % :context (snippet lines (:line %) (:contextLines config)))
                 (parser/parse source rel (:marker config))))))
     (catch Exception _ nil)))

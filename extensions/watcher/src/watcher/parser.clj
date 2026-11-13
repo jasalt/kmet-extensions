@@ -2,6 +2,10 @@
   "Line-comment parser adapted from pi-watcher. Not a language parser."
   (:require [clojure.string :as str]))
 
+(def eol #"\r\n|\n|\r")
+
+(defn lines [s] (str/split s eol -1))
+
 (defn line-comment [^String line]
   (loop [i 0 quote nil escaped? false]
     (when (< i (.length line))
@@ -23,8 +27,7 @@
             (recur (inc i) nil false)))))))
 
 (defn parse [source path marker]
-  (let [lines (str/split source #"\r\n|\n|\r" -1)
-        comments (mapv line-comment lines)
+  (let [comments (mapv line-comment (lines source))
         token (str (java.util.regex.Pattern/quote marker) "[!?.]")
         pattern (re-pattern (str "(?i)(?:^(" token ")(?=$|[^A-Za-z0-9_])|\\s(" token ")$)"))]
     (vec
@@ -46,12 +49,12 @@
   [source path marker ids]
   (let [handled (filter #(contains? ids (:id %)) (parse source path marker))
         line-nos (set (map :line handled))
-        eol (or (re-find #"\r\n|\n|\r" source) "\n")]
-    (str/join eol
+        sep (or (re-find eol source) "\n")]
+    (str/join sep
               (keep-indexed
                (fn [i line]
                  (if (contains? line-nos (inc i))
                    (let [before (subs line 0 (:start (line-comment line)))]
                      (when-not (str/blank? before) (str/trimr before)))
                    line))
-               (str/split source #"\r\n|\n|\r" -1)))))
+               (lines source)))))
