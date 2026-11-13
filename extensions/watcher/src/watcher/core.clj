@@ -119,8 +119,16 @@
           :else (ext/ui-notify api usage :warning)))
       (catch Exception e (ext/ui-notify api (ex-message e) :error)))))
 
+;; The host calls shutdown on unload with only api, so init's state is kept here.
+(defonce runtime (atom nil))
+
+(defn shutdown [api]
+  (some->> @runtime (stop! api))
+  (reset! runtime nil))
+
 (defn init [api]
   (let [state (atom {:processed #{}})]
+    (reset! runtime state)
     (ext/register-command! api
                            {:name "watcher" :description "Watch saved AI!, AI? and AI. comments"
                             :handler (fn [ctx args] (command! api state ctx args))})
