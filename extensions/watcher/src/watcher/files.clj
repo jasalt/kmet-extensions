@@ -47,6 +47,11 @@
                  (= (first s) \?) (recur (subs s 1) (str out "[^/]"))
                  :else (recur (subs s 1) (str out (java.util.regex.Pattern/quote (subs s 0 1)))))) "$")))
 
+(defn file-globs
+  "Ignore globs that need a per-file check; `dir/**` globs are enforced by pruning."
+  [globs]
+  (remove #(str/ends-with? % "/**") globs))
+
 (defn within? [root path]
   (fs/starts-with? (fs/real-path path) (fs/real-path root)))
 
@@ -75,15 +80,17 @@
   "Markers under roots. cache atom maps path -> {:stamp :markers}; unchanged files are not re-read."
   ([cwd config] (scan cwd config (atom {})))
   ([cwd config cache]
-   (let [includes (map glob-regex (:include config)) ignores (map glob-regex (:ignore config))
-         ignored? #(some (fn [re] (re-matches re %)) ignores)
+   (let [includes (map glob-regex (:include config))
+         matches? (fn [res s] (some #(re-matches % s) res))
+         dir-ignores (map glob-regex (:ignore config))
+         file-ignores (map glob-regex (file-globs (:ignore config)))
          marker-re (re-pattern (str "(?i)" (java.util.regex.Pattern/quote (:marker config)) "[!?.]"))
          old @cache
          found (atom (sorted-map))
          visit (fn [f ^java.nio.file.attribute.BasicFileAttributes attrs]
                  (let [path (str f) rel (str (fs/relativize cwd f))]
                    (when (and (.isRegularFile attrs) (<= (.size attrs) (:maxFileBytes config))
-                              (not (ignored? rel)) (some #(re-matches % rel) includes))
+                              (not (matches? file-ignores rel)) (matches? includes rel))
                      (let [stamp [(.lastModifiedTime attrs) (.size attrs)] hit (get old path)]
                        (swap! found assoc path
                               {:stamp stamp
@@ -95,7 +102,7 @@
              :when (and (fs/exists? p) (not (fs/sym-link? p)) (within? cwd p))]
        ;; walk-file-tree does not follow links; symlinks arrive as non-regular files.
        (fs/walk-file-tree
-        p {:pre-visit-dir (fn [dir _] (if (ignored? (str (fs/relativize cwd dir) "/")) :skip-subtree :continue))
+        p {:pre-visit-dir (fn [dir _] (if (matches? dir-ignores (str (fs/relativize cwd dir) "/")) :skip-subtree :continue))
            :visit-file visit
            :visit-file-failed (fn [_ _] :continue)}))
      (reset! cache @found)
