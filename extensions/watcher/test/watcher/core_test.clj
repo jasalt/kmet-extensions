@@ -116,6 +116,19 @@
         (some-> (:session-shutdown @handlers) (apply [nil nil]))
         (fs/delete-tree dir)))))
 
+(deftest ignore-globs
+  ;; `dir/**` globs are enforced by directory pruning, so only the rest run per file.
+  (is (= ["**/*.log"] (some-> (resolve 'watcher.files/file-globs) (apply [["**/x/**" "**/*.log"]]))))
+  (let [dir (str (fs/create-temp-dir))
+        cfg (assoc files/defaults :ignore ["**/x/**" "**/*.log"])]
+    (try
+      (doseq [p ["x/a" "y/x/b" "y/c.log" "keep"]]
+        (fs/create-dirs (fs/parent (fs/path dir p)))
+        (spit (str (fs/path dir p)) "# AI! fix"))
+      (is (= ["keep"] (mapv :path (files/scan dir cfg))))
+      (is (empty? (files/scan dir (assoc cfg :roots ["x"]))) "ignored root is pruned")
+      (finally (fs/delete-tree dir)))))
+
 (deftest prompt-limits
   (let [ms [(assoc (first (parser/parse "# AI! fix é" "a" "AI")) :context (files/snippet ["# AI! fix é"] 1 12))]]
     (is (string? (files/prompt ms files/defaults)))
