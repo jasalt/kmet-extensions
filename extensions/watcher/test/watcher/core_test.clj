@@ -93,6 +93,29 @@
       (is (seq (:pending @state)))
       (finally (fs/delete-tree dir)))))
 
+(deftest unload-stops-polling
+  ;; The host calls <plugin-ns>/shutdown on unload; a started loop must stop.
+  (let [dir (str (fs/create-temp-dir)) ticks (atom 0) handlers (atom {})
+        api {:get-agent-dir (constantly dir)
+             :register-command! (fn [_])
+             :on-event (fn [event f] (swap! handlers assoc event f))
+             :ui {:set-status (fn [_ text] (when text (swap! ticks inc))) :notify (fn [& _])}}]
+    (try
+      (fs/create-dirs (str dir "/.kmet/extensions"))
+      (spit (str dir "/.kmet/extensions/watcher.json") "{\"pollMs\":100}")
+      (core/init api)
+      ((:session-start @handlers) nil {:cwd dir :has-ui true :is-idle (constantly true)})
+      (Thread/sleep 350)
+      (is (pos? @ticks) "loop polls before unload")
+      (is (ifn? (resolve 'watcher.core/shutdown)) "host unload hook exists")
+      (some-> (resolve 'watcher.core/shutdown) (apply [api]))
+      (let [before @ticks]
+        (Thread/sleep 350)
+        (is (= before @ticks) "no polling after unload"))
+      (finally
+        (some-> (:session-shutdown @handlers) (apply [nil nil]))
+        (fs/delete-tree dir)))))
+
 (deftest prompt-limits
   (let [ms [(assoc (first (parser/parse "# AI! fix é" "a" "AI")) :context (files/snippet ["# AI! fix é"] 1 12))]]
     (is (string? (files/prompt ms files/defaults)))
