@@ -1,0 +1,3 @@
+{:name "watcher"
+ :plugin watcher.core/plugin
+ :loader [:sci]}

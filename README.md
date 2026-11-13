@@ -2,11 +2,12 @@
 
 Quick and dirty Pi extension ports for [kmet-agent](https://github.com/kmetia/kmet-agent).
 
-Nine extension directories. Seven have `src/` source and tests (including one
+Ten extension directories. Eight have `src/` source and tests (including one
 work-in-progress port); two are port *documents* only — no source, not implemented.
 
 | Extension | State | LOC | Summary |
 | --- | --- | --- | --- |
+| [watcher](extensions/watcher/) | Implemented (SCI; interactive E2E unverified) | — | Saved `AI!` / `AI?` comments trigger focused requests; `AI.` context, polling, idle queue, repeat suppression and marker cleanup. Upstream: [pi-watcher](https://github.com/jasalt/pi-watcher). |
 | [schedule](extensions/schedule/) | Work in progress | 3402 | Interval / daily-local-time / one-shot jobs; kinds `prompt`, `shell`, `notify`, `message`; trust gating and atomic persistence. SCI load verified; native Jolt execution, subprocess races, and shell process-tree termination still unverified. Upstream: [pi-schedule](https://github.com/pungggi/pi-schedule). |
 | [imgview](extensions/imgview/) | Implemented | 1107 | Displays existing images (no generation). No dependencies or settings. Upstream: [pi-imgview](https://github.com/gregjohnso/pi-imgview). |
 | [pins](extensions/pins/) | Implemented | 943 | Pins assistant messages and recalls them in a full-width overlay browser; no screen space when unused. Upstream: [pi-pins](https://github.com/s4lv0/pi-pins). |
@@ -57,7 +58,7 @@ nix run github:jasalt/kmet-extensions
 If flakes are not enabled in your Nix configuration, add
 `--extra-experimental-features 'nix-command flakes'` to the `nix` command.
 
-The launcher uses **Babashka**, not Jolt, and enables all seven source
+The launcher uses **Babashka**, not Jolt, and enables all eight source
 extensions for this process, including the work-in-progress `schedule` port.
 It preserves your current directory and existing kmet settings, authentication,
 and sessions (`~/.kmet/agent`, or `KMET_CODING_AGENT_DIR`). It does not install
@@ -121,7 +122,7 @@ cp result/bin/kmet-extensions /path/to/destination/kmet-extensions
 
 On Linux x86-64, `nix build .#standalone` produces
 one approximately 76 MiB executable: static Babashka 1.13.229 with kmet,
-its Clojure dependencies, and all seven extensions appended as a JAR. Copy
+its Clojure dependencies, and all eight extensions appended as a JAR. Copy
 the executable itself, not the `result` symlink. The destination needs no
 Nix, Java, Babashka installation, or companion source files. Portable binaries
 are currently supported only for Linux x86-64.
@@ -157,7 +158,7 @@ middleware: blocked calls never invoke `next`; allowed calls invoke it once.
 Session migration computes SHA-256 directly rather than importing a private
 host authentication helper.
 
-All seven source extensions use the current plugin contract: `extension.edn`
+All eight source extensions use the current plugin contract: `extension.edn`
 names `:plugin <namespace>/plugin`, whose `:apply` registers capabilities.
 The `init` functions remain internal registration helpers; the host does not
 call them directly. UI imports use the split reakt/hikap namespaces.
