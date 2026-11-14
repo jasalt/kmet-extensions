@@ -16,7 +16,7 @@
 (def rules
   {:maxFileBytes pos-int? :debounceMs pos-int? :pollMs pos-int? :maxPromptBytes pos-int?
    :contextLines nat-int? :enabled boolean? :scanOnStart boolean? :removeHandledMarkerComments boolean?
-   :roots strings? :include strings? :ignore strings?
+   :roots strings? :include strings? :ignore strings? :extraIgnore strings?
    :marker #(and (string? %) (not (str/blank? %)))})
 
 (defn paths [agent-dir cwd]
@@ -27,10 +27,14 @@
   (if (fs/exists? path) (json/parse-string (slurp path) true) {}))
 
 (defn config [paths]
-  (let [c (merge defaults (read-config (:global paths)) (read-config (:project paths)))]
+  (let [layers (map read-config [(:global paths) (:project paths)])
+        c (apply merge (assoc defaults :extraIgnore []) layers)]
     (doseq [[k ok?] rules :when (not (ok? (k c)))]
       (throw (ex-info (str "Invalid watcher config: " (name k)) {})))
-    c))
+    ;; extraIgnore appends to ignore and accumulates across global and project.
+    (-> c
+        (update :ignore into (mapcat :extraIgnore layers))
+        (dissoc :extraIgnore))))
 
 (defn set-enabled! [path enabled]
   (fs/create-dirs (fs/parent path))

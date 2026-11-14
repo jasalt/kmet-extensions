@@ -96,7 +96,9 @@ preserve other keys. Configuration is read on session start/reload and start/sto
 }
 ```
 
-Arrays replace defaults (they do not append). Globs support `*`, `**`, `?` and
+Arrays replace defaults (they do not append). To add patterns instead, use
+`extraIgnore`: entries from global and project configs are both appended to
+`ignore`, e.g. `{"extraIgnore": ["**/*.md"]}`. Globs support `*`, `**`, `?` and
 `**/` matching zero or more directories, not brace expansions or negation.
 Requests queue until the agent is idle. Invalid configuration reports an error
 rather than silently enabling the watcher. Set roots to `src`/`tests` in large

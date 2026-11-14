@@ -151,6 +151,21 @@
       (is (empty? (files/scan dir (assoc cfg :roots ["x"]))) "ignored root is pruned")
       (finally (fs/delete-tree dir)))))
 
+(deftest extra-ignore-appends
+  (let [dir (str (fs/create-temp-dir))
+        paths {:global (str dir "/g.json") :project (str dir "/p.json")}]
+    (try
+      (spit (:global paths) "{\"extraIgnore\": [\"**/*.md\"]}")
+      (spit (:project paths) "{\"extraIgnore\": [\"**/x/**\"]}")
+      (let [c (files/config paths)]
+        (is (= (into (:ignore files/defaults) ["**/*.md" "**/x/**"]) (:ignore c)))
+        (is (not (contains? c :extraIgnore))))
+      (spit (:project paths) "{\"ignore\": [\"a\"], \"extraIgnore\": [\"b\"]}")
+      (is (= ["a" "**/*.md" "b"] (:ignore (files/config paths))) "applies on top of replaced ignore")
+      (spit (:project paths) "{\"extraIgnore\": \"b\"}")
+      (is (thrown? Exception (files/config paths)))
+      (finally (fs/delete-tree dir)))))
+
 (deftest prompt-limits
   (let [ms [(assoc (first (parser/parse "# AI! fix é" "a" "AI")) :context (files/snippet ["# AI! fix é"] 1 12))]]
     (is (string? (files/prompt ms files/defaults)))
