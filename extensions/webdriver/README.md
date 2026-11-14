@@ -10,7 +10,7 @@ starts on first use and stays open between calls:
 
 | action | args | result |
 |---|---|---|
-| `start` | – | starts the browser |
+| `start` | `headed` | starts the browser (headless unless `headed` is true) |
 | `go` | `url` | navigates, then returns the URL and title |
 | `info` | – | returns the current URL and title |
 | `snapshot` | `interactive`, `compact`, `depth`, `urls`, `selector` | returns an accessibility outline with element refs (up to 30000 chars) |
@@ -103,6 +103,23 @@ variables, then `PATH`.
           :sandbox true                           ; or WEBDRIVER_SANDBOX=false
           :args ["--window-size=1280,900"]}}
 ```
+
+### Headed mode
+
+The browser is headless by default. To show a window, as
+`agent-browser --headed` does, use one of these (first match wins):
+
+1. the call's `headed` arg, e.g. `{"action": "start", "headed": true}`;
+2. the row's `:headless false`;
+3. `WEBDRIVER_HEADLESS=false` in kmet's environment.
+
+The mode is fixed when the browser starts. Asking a running session for the
+other mode is refused; use `quit`, then `start` with the new value.
+
+On Wayland (`WAYLAND_DISPLAY` set, no `DISPLAY`), headed mode adds
+`--ozone-platform=wayland`, like the podman jail's `AGENT_BROWSER_ARGS`. An
+`--ozone-platform=…` in `:args` overrides it. With an X display, Chromium uses
+X11 as usual.
 
 Chromium's sandbox is on by default, because the tool may visit any site.
 Containers without user namespaces usually cannot start a sandboxed Chromium

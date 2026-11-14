@@ -25,32 +25,71 @@
 (defn- which [names]
   (some #(some-> (fs/which %) str) names))
 
+(defn- env-flag
+  "Env var NAME as a boolean: \"false\"/\"0\"/\"no\" → false, any other
+  non-blank value → true, unset/blank → nil."
+  [name]
+  (when-let [v (some-> (System/getenv name) str/trim str/lower-case not-empty)]
+    (not (#{"false" "0" "no"} v))))
+
+(defn- flag
+  "Boolean option K: the call's ARGS, then row CONFIG, then env var ENV, then DEFAULT."
+  [args config k env default]
+  (cond (some? (get args k)) (boolean (get args k))
+        (contains? config k) (boolean (get config k))
+        :else (let [v (env-flag env)] (if (some? v) v default))))
+
+(defn- display-args
+  "Headed Chromium on Wayland: select the Ozone Wayland backend when a Wayland
+  socket is advertised and there is no X display, unless the args already pick
+  a platform. Mirrors `agent-browser --headed --args --ozone-platform=wayland`."
+  [args]
+  (if (and (not-any? #(str/starts-with? % "--ozone-platform") args)
+           (not (str/blank? (System/getenv "WAYLAND_DISPLAY")))
+           (str/blank? (System/getenv "DISPLAY")))
+    ["--ozone-platform=wayland"]
+    []))
+
 (defn driver-opts
-  "Etaoin boot options from row CONFIG, then env, then PATH discovery.
-  Keys: :chromedriver, :browser, :headless (default true), :sandbox (default
-  true; false passes --no-sandbox, which containers often need), :args."
-  [config]
-  (let [driver (or (:chromedriver config) (System/getenv "WEBDRIVER_CHROMEDRIVER")
-                   (which ["chromedriver"]))
-        browser (or (:browser config) (System/getenv "WEBDRIVER_BROWSER")
-                    (which ["chromium" "chromium-browser" "google-chrome" "google-chrome-stable"]))
-        sandbox? (if (contains? config :sandbox)
-                   (boolean (:sandbox config))
-                   (not= "false" (System/getenv "WEBDRIVER_SANDBOX")))]
-    (cond-> {:headless (if (contains? config :headless) (boolean (:headless config)) true)
-             :args (into (cond-> ["--disable-dev-shm-usage"] (not sandbox?) (conj "--no-sandbox"))
-                         (:args config))}
-      driver (assoc :path-driver driver)
-      browser (assoc :path-browser browser))))
+  "Etaoin boot options from call ARGS, row CONFIG, then env, then PATH discovery.
+  Keys: :chromedriver, :browser, :headless (default true; WEBDRIVER_HEADLESS,
+  or the call's `headed`), :sandbox (default true; false passes --no-sandbox,
+  which containers often need), :args."
+  ([config] (driver-opts config {}))
+  ([config args]
+   (let [driver (or (:chromedriver config) (System/getenv "WEBDRIVER_CHROMEDRIVER")
+                    (which ["chromedriver"]))
+         browser (or (:browser config) (System/getenv "WEBDRIVER_BROWSER")
+                     (which ["chromium" "chromium-browser" "google-chrome" "google-chrome-stable"]))
+         sandbox? (flag {} config :sandbox "WEBDRIVER_SANDBOX" true)
+         headless? (flag (cond-> {} (some? (:headed args)) (assoc :headless (not (:headed args))))
+                         config :headless "WEBDRIVER_HEADLESS" true)
+         extra (vec (:args config))]
+     (cond-> {:headless headless?
+              :args (-> (cond-> ["--disable-dev-shm-usage"] (not sandbox?) (conj "--no-sandbox"))
+                        (into (when-not headless? (display-args extra)))
+                        (into extra))}
+       driver (assoc :path-driver driver)
+       browser (assoc :path-browser browser)))))
 
 ;; ─── Session ─────────────────────────────────────────────────────────────
 
-(defn- start! [config]
-  (or @session
-      (let [opts (driver-opts config)]
-        (when-not (:path-driver opts)
-          (throw (ex-info "chromedriver not found: set WEBDRIVER_CHROMEDRIVER or the row's :chromedriver config" {})))
-        (reset! session (e/chrome opts)))))
+(defn- start!
+  "The running session, booting one if needed. An explicit `headed` in ARGS
+  that differs from the running session's mode is refused: switching restarts
+  the browser and loses the page, so it must be asked for with quit first."
+  [config args]
+  (if-let [driver @session]
+    (do (when (and (some? (:headed args)) (= (boolean (:headed args)) (e/headless? driver)))
+          (throw (ex-info (str "Browser is already running "
+                               (if (e/headless? driver) "headless" "headed")
+                               ". Use action quit first, then start with the new headed value.")
+                          {})))
+        driver)
+    (let [opts (driver-opts config args)]
+      (when-not (:path-driver opts)
+        (throw (ex-info "chromedriver not found: set WEBDRIVER_CHROMEDRIVER or the row's :chromedriver config" {})))
+      (reset! session (e/chrome opts)))))
 
 (defn stop!
   "Quit the browser and the chromedriver process, if running."
@@ -208,9 +247,9 @@
   (validate! args)
   (case action
     "quit" (do (stop!) (text-result "Browser closed."))
-    (let [driver (start! config)]
+    (let [driver (start! config args)]
       (case action
-        "start" (text-result (str "Browser ready (" (if (:headless (driver-opts config)) "headless" "headed") ")."))
+        "start" (text-result (str "Browser ready (" (if (e/headless? driver) "headless" "headed") ")."))
         "go" (do (e/go driver url)
                  (text-result (page-summary driver)))
         "info" (text-result (page-summary driver))
@@ -266,6 +305,7 @@
    :xpath {:type :string :description "XPath, alternative to selector" :optional? true}
    :text {:type :string :description "fill: value to type" :optional? true}
    :script {:type :string :description "js: script body; use `return` for a value" :optional? true}
+   :headed {:type :boolean :description "start (or the first call): show a browser window instead of headless; quit first to switch" :optional? true}
    :timeout {:type :number :description "Seconds to wait for the element (default 10)" :optional? true}
    :interactive {:type :boolean :description "snapshot: only elements with refs" :optional? true}
    :compact {:type :boolean :description "snapshot: drop unnamed structure" :optional? true}
@@ -277,7 +317,7 @@
     (ext/register-tool! api
                         {:name "webdriver"
                          :label "WebDriver"
-                         :description (str "Control a headless Chromium through W3C WebDriver (Etaoin). "
+                         :description (str "Control Chromium (headless by default; start with headed=true for a visible window) through W3C WebDriver (Etaoin). "
                                            "The browser starts on first use and persists between calls. "
                                            "Use snapshot to see the page as an accessibility outline with refs "
                                            "(e.g. `button \"Save\" [ref=e7]`), then act with ref=e7. "
