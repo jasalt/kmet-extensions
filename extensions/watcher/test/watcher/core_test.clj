@@ -1,6 +1,7 @@
 (ns watcher.core-test
   (:require [clojure.test :refer [deftest is testing run-tests]]
             [babashka.fs :as fs]
+            [clojure.string :as str]
             [kmet.extension :as ext]
             [watcher.core :as core]
             [watcher.files :as files]
@@ -154,6 +155,17 @@
   (let [ms [(assoc (first (parser/parse "# AI! fix é" "a" "AI")) :context (files/snippet ["# AI! fix é"] 1 12))]]
     (is (string? (files/prompt ms files/defaults)))
     (is (nil? (files/prompt ms (assoc files/defaults :maxPromptBytes 10))))))
+
+(deftest overlapping-context-merged
+  (let [src (str/join "\n" (concat ["; AI. ctx"] (repeat 5 "x") ["; why AI?"] (repeat 20 "y") ["; AI! far"]))
+        lines (parser/lines src)
+        ms (mapv #(assoc % :context (files/snippet lines (:line %) 3)) (parser/parse src "f" "AI"))
+        text (files/prompt ms files/defaults)
+        other (files/prompt (concat ms (map #(assoc % :path "g") ms)) files/defaults)]
+    (is (= 1 (count (re-seq #"(?m)^4: " text))) "shared lines sent once")
+    (is (re-find #"f:1 \[context\] AI\. ctx\nf:7 \[ask\] why AI\?\n1: ; AI\. ctx" text))
+    (is (re-find #"\n10: y\n\nf:28 \[edit\] AI! far\n25: " text) "distant marker gets its own section")
+    (is (= 2 (count (re-seq #"(?m)^4: " other))) "same lines in different files do not merge")))
 
 (defn -main [& _]
   (let [result (run-tests 'watcher.core-test)]

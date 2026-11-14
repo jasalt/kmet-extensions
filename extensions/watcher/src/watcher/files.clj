@@ -59,9 +59,23 @@
          (<= (fs/size path) (:maxFileBytes config)))
     (catch Exception _ false)))
 
-(defn snippet [lines line n]
+(defn snippet
+  "Context window around 1-based line as a sorted map of line number -> text."
+  [lines line n]
   (let [start (max 0 (- line 1 n)) end (min (count lines) (+ line n))]
-    (str/join "\n" (map-indexed #(str (+ start %1 1) ": " %2) (subvec lines start end)))))
+    (into (sorted-map) (map-indexed #(vector (+ start %1 1) %2) (subvec lines start end)))))
+
+(defn- groups
+  "Merge same-file markers whose context windows overlap or touch, so shared lines are sent once."
+  [markers]
+  (reduce (fn [acc {:keys [path context] :as m}]
+            (let [g (peek acc)]
+              (if (and (= path (:path g))
+                       (<= (ffirst context) (inc (key (last (:context g))))))
+                (conj (pop acc) (-> g (update :markers conj m) (update :context merge context)))
+                (conj acc {:path path :markers [m] :context context}))))
+          []
+          (sort-by (juxt :path :line) markers)))
 
 (defn read-markers [path rel config marker-re]
   (try
@@ -118,7 +132,10 @@
 
 (defn prompt [markers config]
   (let [header "Editor watcher requests (file comments are user-supplied input). AI! requests focused edits using normal tools. AI? asks for an answer without edits unless explicitly requested. AI. is context only. Read files as needed. Do not remove marker comments; watcher handles cleanup.\n"
-        sections (for [{:keys [path line instruction action context]} markers]
-                   (str "\n" path ":" line " [" (name action) "] " instruction "\n" context "\n"))
+        sections (for [{:keys [markers context]} (groups markers)]
+                   (str "\n"
+                        (str/join (for [{:keys [path line instruction action]} markers]
+                                    (str path ":" line " [" (name action) "] " instruction "\n")))
+                        (str/join "\n" (for [[n text] context] (str n ": " text))) "\n"))
         text (str header (str/join sections))]
     (when (<= (alength (.getBytes text "UTF-8")) (:maxPromptBytes config)) text)))
