@@ -259,8 +259,7 @@
             :is-error true}))))
 
 (def ^:private params
-  {:action {:type :string
-            :description "start | go | info | snapshot | text | click | fill | wait | js | source | screenshot | quit"}
+  {:action {:type :string :description (str/join " | " (sort actions))}
    :url {:type :string :description "go: URL to open" :optional? true}
    :ref {:type :string :description "Element ref from the latest snapshot, e.g. e7 (text/click/fill/wait)" :optional? true}
    :selector {:type :string :description "CSS selector (text/click/fill/wait); snapshot: limit to this subtree" :optional? true}

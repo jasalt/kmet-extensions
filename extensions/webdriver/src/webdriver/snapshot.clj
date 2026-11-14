@@ -128,6 +128,30 @@
     state
     {:doc doc :next (:next state 1) :refs {} :by-backend {}}))
 
+(defn- nth-occurrences
+  "The 0-based occurrence of each node's role+name among NODES, in document
+  order: the first \"Save\" button gets 0, the second 1."
+  [nodes]
+  (let [seens (reductions (fn [seen {:keys [role name]}]
+                            (update seen [role name] (fnil inc 0)))
+                          {} nodes)]
+    (map (fn [seen {:keys [role name]}] (get seen [role name] 0)) seens nodes)))
+
+(defn- assign-ref
+  "ST with NODE ref'd: refresh the entry of a node that already has a ref, or
+  give a new node the next number. COUNTS says how often each role+name occurs
+  in the tree; duplicates record their NTH occurrence."
+  [st counts {:keys [backend-id role name]} nth]
+  (let [entry (cond-> {:backend-id backend-id :role role :name name}
+                (> (counts [role name]) 1) (assoc :nth nth))]
+    (if-let [ref (get-in st [:by-backend backend-id])]
+      (assoc-in st [:refs ref] entry)
+      (let [ref (str "e" (:next st))]
+        (-> st
+            (update :next inc)
+            (assoc-in [:refs ref] entry)
+            (assoc-in [:by-backend backend-id] ref))))))
+
 (defn assign-refs
   "Give every ref-worthy node in TREE a ref. Nodes that had a ref in this document
   keep it; new nodes get the next number. Duplicate role+name pairs record their
@@ -136,22 +160,9 @@
   [state doc tree]
   (let [worthy (filter ref-worthy? (preorder tree))
         counts (frequencies (map (juxt :role :name) worthy))
-        state (reduce
-               (fn [st [{:keys [backend-id role name]} nth]]
-                 (let [ref (or (get-in st [:by-backend backend-id]) (str "e" (:next st)))
-                       entry (cond-> {:backend-id backend-id :role role :name name}
-                               (> (counts [role name]) 1) (assoc :nth nth))]
-                   (cond-> (-> st
-                               (assoc-in [:refs ref] entry)
-                               (assoc-in [:by-backend backend-id] ref))
-                     (not (get-in st [:by-backend backend-id])) (update :next inc))))
-               (reset-for state doc)
-               (map vector worthy
-                    ;; nth occurrence of each role+name, in document order
-                    (second (reduce (fn [[seen acc] {:keys [role name]}]
-                                      [(update seen [role name] (fnil inc 0))
-                                       (conj acc (get seen [role name] 0))])
-                                    [{} []] worthy))))
+        state (reduce (fn [st [node nth]] (assign-ref st counts node nth))
+                      (reset-for state doc)
+                      (map vector worthy (nth-occurrences worthy)))
         tag (fn tag [node]
               (cond-> (update node :children #(mapv tag %))
                 (ref-worthy? node) (assoc :ref (get-in state [:by-backend (:backend-id node)]))))]
