@@ -1,0 +1,2 @@
+{:tasks {test {:doc "Offline tests; set KMET_CHECKOUT if needed"
+               :task (shell "bb scripts/test.bb")}}}

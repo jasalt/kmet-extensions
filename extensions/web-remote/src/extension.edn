@@ -1,0 +1,3 @@
+{:name "web-remote"
+ :plugin web-remote.core/plugin
+ :loader [:sci]}
