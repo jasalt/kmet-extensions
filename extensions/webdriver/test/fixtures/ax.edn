@@ -1,0 +1,2385 @@
+{:loader-id "3C57AA196AFEE3A005BDA6BEEDDAB1D5",
+ :initial
+ [{:role {:type "internalRole", :value "RootWebArea"},
+   :properties
+   [{:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "focused", :value {:type "booleanOrUndefined", :value true}}
+    {:name "url",
+     :value {:type "string", :value "file:///fixture/page.html"}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "aria-label", :superseded true, :type "attribute"}
+     {:nativeSource "title",
+      :type "relatedElement",
+      :value {:type "computedString", :value "Snapshot fixture"}}],
+    :type "computedString",
+    :value "Snapshot fixture"},
+   :frameId "84EFD1B158AC9A6EEEAA2E39802E940B",
+   :nodeId "4",
+   :chromeRole {:type "internalRole", :value 144},
+   :backendDOMNodeId 4,
+   :childIds ["6"],
+   :ignored false}
+  {:backendDOMNodeId 6,
+   :childIds ["9"],
+   :chromeRole {:type "internalRole", :value 0},
+   :ignored true,
+   :ignoredReasons
+   [{:name "uninteresting", :value {:type "boolean", :value true}}],
+   :nodeId "6",
+   :parentId "4",
+   :role {:type "role", :value "none"}}
+  {:backendDOMNodeId 9,
+   :childIds ["10" "13"],
+   :chromeRole {:type "internalRole", :value 0},
+   :ignored true,
+   :ignoredReasons
+   [{:name "uninteresting", :value {:type "boolean", :value true}}],
+   :nodeId "9",
+   :parentId "6",
+   :role {:type "role", :value "none"}}
+  {:role {:type "role", :value "navigation"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label",
+      :attributeValue {:type "string", :value "Primary"},
+      :type "attribute",
+      :value {:type "computedString", :value "Primary"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Primary"},
+   :nodeId "10",
+   :chromeRole {:type "internalRole", :value 130},
+   :backendDOMNodeId 10,
+   :childIds ["11" "55" "12"],
+   :parentId "9",
+   :ignored false}
+  {:role {:type "role", :value "main"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "13",
+   :chromeRole {:type "internalRole", :value 118},
+   :backendDOMNodeId 13,
+   :childIds ["14" "15" "1" "36" "52"],
+   :parentId "9",
+   :ignored false}
+  {:role {:type "role", :value "link"},
+   :properties
+   [{:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "url", :value {:type "string", :value "file:///home"}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents", :value {:type "computedString", :value "Home"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Home"},
+   :nodeId "11",
+   :chromeRole {:type "internalRole", :value 110},
+   :backendDOMNodeId 11,
+   :childIds ["54"],
+   :parentId "10",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents", :value {:type "computedString", :value " "}}],
+    :type "computedString",
+    :value " "},
+   :nodeId "55",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 55,
+   :childIds ["-1000000003"],
+   :parentId "10",
+   :ignored false}
+  {:role {:type "role", :value "link"},
+   :properties
+   [{:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "url", :value {:type "string", :value "file:///docs"}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents", :value {:type "computedString", :value "Docs"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Docs"},
+   :nodeId "12",
+   :chromeRole {:type "internalRole", :value 110},
+   :backendDOMNodeId 12,
+   :childIds ["56"],
+   :parentId "10",
+   :ignored false}
+  {:role {:type "role", :value "heading"},
+   :properties [{:name "level", :value {:type "integer", :value 1}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents",
+      :value {:type "computedString", :value "Account settings​"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Account settings​"},
+   :nodeId "14",
+   :chromeRole {:type "internalRole", :value 96},
+   :backendDOMNodeId 14,
+   :childIds ["57"],
+   :parentId "13",
+   :ignored false}
+  {:role {:type "role", :value "paragraph"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "15",
+   :chromeRole {:type "internalRole", :value 133},
+   :backendDOMNodeId 15,
+   :childIds ["58" "59" "60"],
+   :parentId "13",
+   :ignored false}
+  {:role {:type "role", :value "form"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label",
+      :attributeValue {:type "string", :value "Profile"},
+      :type "attribute",
+      :value {:type "computedString", :value "Profile"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Profile"},
+   :nodeId "1",
+   :chromeRole {:type "internalRole", :value 87},
+   :backendDOMNodeId 1,
+   :childIds ["17" "2" "19" "3" "33" "34" "35"],
+   :parentId "13",
+   :ignored false}
+  {:role {:type "role", :value "region"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label",
+      :attributeValue {:type "string", :value "Items"},
+      :type "attribute",
+      :value {:type "computedString", :value "Items"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Items"},
+   :nodeId "36",
+   :chromeRole {:type "internalRole", :value 143},
+   :backendDOMNodeId 36,
+   :childIds ["37" "42"],
+   :parentId "13",
+   :ignored false}
+  {:role {:type "role", :value "paragraph"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "52",
+   :chromeRole {:type "internalRole", :value 133},
+   :backendDOMNodeId 52,
+   :childIds [],
+   :parentId "13",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Home"}}],
+    :type "computedString",
+    :value "Home"},
+   :nodeId "54",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 54,
+   :childIds ["-1000000002"],
+   :parentId "11",
+   :ignored false}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value " "},
+   :nodeId "-1000000003",
+   :parentId "55",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Docs"}}],
+    :type "computedString",
+    :value "Docs"},
+   :nodeId "56",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 56,
+   :childIds ["-1000000004"],
+   :parentId "12",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Account settings​"}}],
+    :type "computedString",
+    :value "Account settings​"},
+   :nodeId "57",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 57,
+   :childIds ["-1000000005"],
+   :parentId "14",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Signed in as "}}],
+    :type "computedString",
+    :value "Signed in as "},
+   :nodeId "58",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 58,
+   :childIds ["-1000000006"],
+   :parentId "15",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "ada"}}],
+    :type "computedString",
+    :value "ada"},
+   :nodeId "59",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 59,
+   :childIds ["-1000000007"],
+   :parentId "15",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value " since 2024."}}],
+    :type "computedString",
+    :value " since 2024."},
+   :nodeId "60",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 60,
+   :childIds ["-1000000008"],
+   :parentId "15",
+   :ignored false}
+  {:role {:type "internalRole", :value "LabelText"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "17",
+   :chromeRole {:type "internalRole", :value 104},
+   :backendDOMNodeId 17,
+   :childIds ["61"],
+   :parentId "1",
+   :ignored false}
+  {:role {:type "role", :value "textbox"},
+   :properties
+   [{:name "invalid", :value {:type "token", :value "false"}}
+    {:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "editable", :value {:type "token", :value "plaintext"}}
+    {:name "settable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "multiline", :value {:type "boolean", :value false}}
+    {:name "readonly", :value {:type "boolean", :value false}}
+    {:name "required", :value {:type "boolean", :value true}}
+    {:name "labelledby",
+     :value
+     {:relatedNodes [{:backendDOMNodeId 17, :text "Name"}],
+      :type "nodeList"}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "labelfor",
+      :nativeSourceValue
+      {:relatedNodes [{:backendDOMNodeId 17, :text "Name"}],
+       :type "nodeList"},
+      :type "relatedElement",
+      :value {:type "computedString", :value "Name"}}
+     {:attribute "title", :superseded true, :type "attribute"}
+     {:attribute "placeholder", :superseded true, :type "placeholder"}
+     {:attribute "aria-placeholder",
+      :superseded true,
+      :type "placeholder"}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Name"},
+   :value {:type "string", :value "Ada"},
+   :nodeId "2",
+   :chromeRole {:type "internalRole", :value 170},
+   :backendDOMNodeId 2,
+   :childIds ["18"],
+   :parentId "1",
+   :ignored false}
+  {:backendDOMNodeId 19,
+   :childIds ["20" "63"],
+   :chromeRole {:type "internalRole", :value 0},
+   :ignored true,
+   :ignoredReasons
+   [{:name "labelFor",
+     :value {:relatedNodes [{:backendDOMNodeId 20}], :type "idref"}}],
+   :nodeId "19",
+   :parentId "1",
+   :role {:type "role", :value "none"}}
+  {:role {:type "role", :value "checkbox"},
+   :properties
+   [{:name "invalid", :value {:type "token", :value "false"}}
+    {:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "checked", :value {:type "tristate", :value "true"}}
+    {:name "labelledby",
+     :value
+     {:relatedNodes [{:backendDOMNodeId 19, :text " Subscribe"}],
+      :type "nodeList"}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "labelwrapped",
+      :nativeSourceValue
+      {:relatedNodes [{:backendDOMNodeId 19, :text " Subscribe"}],
+       :type "nodeList"},
+      :type "relatedElement",
+      :value {:type "computedString", :value "Subscribe"}}
+     {:superseded true, :type "contents"}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Subscribe"},
+   :nodeId "20",
+   :chromeRole {:type "internalRole", :value 14},
+   :backendDOMNodeId 20,
+   :childIds [],
+   :parentId "19",
+   :ignored false}
+  {:backendDOMNodeId 63,
+   :childIds [],
+   :chromeRole {:type "internalRole", :value 0},
+   :ignored true,
+   :ignoredReasons
+   [{:name "presentationalRole",
+     :value {:type "boolean", :value true}}],
+   :nodeId "63",
+   :parentId "19",
+   :role {:type "role", :value "none"}}
+  {:role {:type "role", :value "combobox"},
+   :properties
+   [{:name "invalid", :value {:type "token", :value "false"}}
+    {:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "hasPopup", :value {:type "token", :value "menu"}}
+    {:name "expanded",
+     :value {:type "booleanOrUndefined", :value false}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label",
+      :attributeValue {:type "string", :value "Plan"},
+      :type "attribute",
+      :value {:type "computedString", :value "Plan"}}
+     {:nativeSource "label", :superseded true, :type "relatedElement"}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Plan"},
+   :value {:type "string", :value "Pro"},
+   :nodeId "3",
+   :chromeRole {:type "internalRole", :value 209},
+   :backendDOMNodeId 3,
+   :childIds ["23"],
+   :parentId "1",
+   :ignored false}
+  {:role {:type "role", :value "button"},
+   :properties
+   [{:name "invalid", :value {:type "token", :value "false"}}
+    {:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "label", :type "relatedElement"}
+     {:type "contents", :value {:type "computedString", :value "Save"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Save"},
+   :nodeId "33",
+   :chromeRole {:type "internalRole", :value 9},
+   :backendDOMNodeId 33,
+   :childIds ["64"],
+   :parentId "1",
+   :ignored false}
+  {:role {:type "role", :value "button"},
+   :properties
+   [{:name "disabled", :value {:type "boolean", :value true}}
+    {:name "invalid", :value {:type "token", :value "false"}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "label", :type "relatedElement"}
+     {:type "contents",
+      :value {:type "computedString", :value "Delete"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Delete"},
+   :nodeId "34",
+   :chromeRole {:type "internalRole", :value 9},
+   :backendDOMNodeId 34,
+   :childIds ["65"],
+   :parentId "1",
+   :ignored false}
+  {:role {:type "role", :value "button"},
+   :properties
+   [{:name "invalid", :value {:type "token", :value "false"}}
+    {:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "expanded",
+     :value {:type "booleanOrUndefined", :value false}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "label", :type "relatedElement"}
+     {:type "contents", :value {:type "computedString", :value "More"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "More"},
+   :nodeId "35",
+   :chromeRole {:type "internalRole", :value 9},
+   :backendDOMNodeId 35,
+   :childIds ["66"],
+   :parentId "1",
+   :ignored false}
+  {:role {:type "role", :value "list"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "37",
+   :chromeRole {:type "internalRole", :value 111},
+   :backendDOMNodeId 37,
+   :childIds ["38" "40"],
+   :parentId "36",
+   :ignored false}
+  {:role {:type "role", :value "table"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "tablecaption", :type "relatedElement"}
+     {:attribute "summary", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "42",
+   :chromeRole {:type "internalRole", :value 167},
+   :backendDOMNodeId 42,
+   :childIds ["43"],
+   :parentId "36",
+   :ignored false}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Home"},
+   :nodeId "-1000000002",
+   :parentId "54",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Docs"},
+   :nodeId "-1000000004",
+   :parentId "56",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Account settings​"},
+   :nodeId "-1000000005",
+   :parentId "57",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Signed in as "},
+   :nodeId "-1000000006",
+   :parentId "58",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "ada"},
+   :nodeId "-1000000007",
+   :parentId "59",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value " since 2024."},
+   :nodeId "-1000000008",
+   :parentId "60",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Name"}}],
+    :type "computedString",
+    :value "Name"},
+   :nodeId "61",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 61,
+   :childIds ["-1000000009"],
+   :parentId "17",
+   :ignored false}
+  {:role {:type "role", :value "generic"},
+   :properties
+   [{:name "editable", :value {:type "token", :value "plaintext"}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "18",
+   :chromeRole {:type "internalRole", :value 88},
+   :backendDOMNodeId 18,
+   :childIds ["62"],
+   :parentId "2",
+   :ignored false}
+  {:role {:type "internalRole", :value "MenuListPopup"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "23",
+   :chromeRole {:type "internalRole", :value 128},
+   :backendDOMNodeId 23,
+   :childIds ["27" "30"],
+   :parentId "3",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Save"}}],
+    :type "computedString",
+    :value "Save"},
+   :nodeId "64",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 64,
+   :childIds ["-1000000012"],
+   :parentId "33",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Delete"}}],
+    :type "computedString",
+    :value "Delete"},
+   :nodeId "65",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 65,
+   :childIds ["-1000000013"],
+   :parentId "34",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "More"}}],
+    :type "computedString",
+    :value "More"},
+   :nodeId "66",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 66,
+   :childIds ["-1000000014"],
+   :parentId "35",
+   :ignored false}
+  {:role {:type "role", :value "listitem"},
+   :properties [{:name "level", :value {:type "integer", :value 1}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "38",
+   :chromeRole {:type "internalRole", :value 115},
+   :backendDOMNodeId 38,
+   :childIds ["67" "68" "39"],
+   :parentId "37",
+   :ignored false}
+  {:role {:type "role", :value "listitem"},
+   :properties [{:name "level", :value {:type "integer", :value 1}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "40",
+   :chromeRole {:type "internalRole", :value 115},
+   :backendDOMNodeId 40,
+   :childIds ["70" "71" "41"],
+   :parentId "37",
+   :ignored false}
+  {:backendDOMNodeId 43,
+   :childIds ["44" "47"],
+   :chromeRole {:type "internalRole", :value 0},
+   :ignored true,
+   :ignoredReasons
+   [{:name "uninteresting", :value {:type "boolean", :value true}}],
+   :nodeId "43",
+   :parentId "42",
+   :role {:type "role", :value "none"}}
+  {:role {:type "role", :value "row"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "44",
+   :chromeRole {:type "internalRole", :value 145},
+   :backendDOMNodeId 44,
+   :childIds ["45" "46"],
+   :parentId "43",
+   :ignored false}
+  {:role {:type "role", :value "row"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "47",
+   :chromeRole {:type "internalRole", :value 145},
+   :backendDOMNodeId 47,
+   :childIds ["48" "49"],
+   :parentId "43",
+   :ignored false}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Name"},
+   :nodeId "-1000000009",
+   :parentId "61",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties
+   [{:name "editable", :value {:type "token", :value "plaintext"}}],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Ada"}}],
+    :type "computedString",
+    :value "Ada"},
+   :nodeId "62",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 62,
+   :childIds ["-1000000010"],
+   :parentId "18",
+   :ignored false}
+  {:role {:type "role", :value "option"},
+   :properties
+   [{:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "selected",
+     :value {:type "booleanOrUndefined", :value false}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents", :value {:type "computedString", :value "Free"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Free"},
+   :nodeId "27",
+   :chromeRole {:type "internalRole", :value 127},
+   :backendDOMNodeId 27,
+   :childIds [],
+   :parentId "23",
+   :ignored false}
+  {:role {:type "role", :value "option"},
+   :properties
+   [{:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "selected",
+     :value {:type "booleanOrUndefined", :value true}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents", :value {:type "computedString", :value "Pro"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Pro"},
+   :nodeId "30",
+   :chromeRole {:type "internalRole", :value 127},
+   :backendDOMNodeId 30,
+   :childIds [],
+   :parentId "23",
+   :ignored false}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Save"},
+   :nodeId "-1000000012",
+   :parentId "64",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Delete"},
+   :nodeId "-1000000013",
+   :parentId "65",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "More"},
+   :nodeId "-1000000014",
+   :parentId "66",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:role {:type "internalRole", :value "ListMarker"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents", :value {:type "computedString", :value "• "}}],
+    :type "computedString",
+    :value "• "},
+   :nodeId "67",
+   :chromeRole {:type "internalRole", :value 116},
+   :backendDOMNodeId 67,
+   :childIds ["-1000000015"],
+   :parentId "38",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "First "}}],
+    :type "computedString",
+    :value "First "},
+   :nodeId "68",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 68,
+   :childIds ["-1000000016"],
+   :parentId "38",
+   :ignored false}
+  {:role {:type "role", :value "button"},
+   :properties
+   [{:name "invalid", :value {:type "token", :value "false"}}
+    {:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "label", :type "relatedElement"}
+     {:type "contents", :value {:type "computedString", :value "Save"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Save"},
+   :nodeId "39",
+   :chromeRole {:type "internalRole", :value 9},
+   :backendDOMNodeId 39,
+   :childIds ["69"],
+   :parentId "38",
+   :ignored false}
+  {:role {:type "internalRole", :value "ListMarker"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents", :value {:type "computedString", :value "• "}}],
+    :type "computedString",
+    :value "• "},
+   :nodeId "70",
+   :chromeRole {:type "internalRole", :value 116},
+   :backendDOMNodeId 70,
+   :childIds ["-1000000018"],
+   :parentId "40",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Second "}}],
+    :type "computedString",
+    :value "Second "},
+   :nodeId "71",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 71,
+   :childIds ["-1000000019"],
+   :parentId "40",
+   :ignored false}
+  {:role {:type "role", :value "button"},
+   :properties
+   [{:name "invalid", :value {:type "token", :value "false"}}
+    {:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "label", :type "relatedElement"}
+     {:type "contents", :value {:type "computedString", :value "Save"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Save"},
+   :nodeId "41",
+   :chromeRole {:type "internalRole", :value 9},
+   :backendDOMNodeId 41,
+   :childIds ["72"],
+   :parentId "40",
+   :ignored false}
+  {:role {:type "role", :value "columnheader"},
+   :properties
+   [{:name "readonly", :value {:type "boolean", :value false}}
+    {:name "required", :value {:type "boolean", :value false}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents", :value {:type "computedString", :value "Key"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Key"},
+   :nodeId "45",
+   :chromeRole {:type "internalRole", :value 19},
+   :backendDOMNodeId 45,
+   :childIds ["73"],
+   :parentId "44",
+   :ignored false}
+  {:role {:type "role", :value "columnheader"},
+   :properties
+   [{:name "readonly", :value {:type "boolean", :value false}}
+    {:name "required", :value {:type "boolean", :value false}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents",
+      :value {:type "computedString", :value "Value"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Value"},
+   :nodeId "46",
+   :chromeRole {:type "internalRole", :value 19},
+   :backendDOMNodeId 46,
+   :childIds ["74"],
+   :parentId "44",
+   :ignored false}
+  {:role {:type "role", :value "cell"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents", :value {:type "computedString", :value "plan"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "plan"},
+   :nodeId "48",
+   :chromeRole {:type "internalRole", :value 13},
+   :backendDOMNodeId 48,
+   :childIds ["75"],
+   :parentId "47",
+   :ignored false}
+  {:role {:type "role", :value "cell"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents", :value {:type "computedString", :value "pro"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "pro"},
+   :nodeId "49",
+   :chromeRole {:type "internalRole", :value 13},
+   :backendDOMNodeId 49,
+   :childIds ["76"],
+   :parentId "47",
+   :ignored false}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Ada"},
+   :nodeId "-1000000010",
+   :parentId "62",
+   :properties
+   [{:name "editable", :value {:type "token", :value "plaintext"}}],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 0},
+   :ignored true,
+   :ignoredReasons
+   [{:name "presentationalRole",
+     :value {:type "boolean", :value true}}],
+   :nodeId "-1000000015",
+   :parentId "67",
+   :role {:type "role", :value "none"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "First "},
+   :nodeId "-1000000016",
+   :parentId "68",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Save"}}],
+    :type "computedString",
+    :value "Save"},
+   :nodeId "69",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 69,
+   :childIds ["-1000000017"],
+   :parentId "39",
+   :ignored false}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 0},
+   :ignored true,
+   :ignoredReasons
+   [{:name "presentationalRole",
+     :value {:type "boolean", :value true}}],
+   :nodeId "-1000000018",
+   :parentId "70",
+   :role {:type "role", :value "none"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Second "},
+   :nodeId "-1000000019",
+   :parentId "71",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Save"}}],
+    :type "computedString",
+    :value "Save"},
+   :nodeId "72",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 72,
+   :childIds ["-1000000020"],
+   :parentId "41",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Key"}}],
+    :type "computedString",
+    :value "Key"},
+   :nodeId "73",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 73,
+   :childIds ["-1000000021"],
+   :parentId "45",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Value"}}],
+    :type "computedString",
+    :value "Value"},
+   :nodeId "74",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 74,
+   :childIds ["-1000000022"],
+   :parentId "46",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "plan"}}],
+    :type "computedString",
+    :value "plan"},
+   :nodeId "75",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 75,
+   :childIds ["-1000000023"],
+   :parentId "48",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "pro"}}],
+    :type "computedString",
+    :value "pro"},
+   :nodeId "76",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 76,
+   :childIds ["-1000000024"],
+   :parentId "49",
+   :ignored false}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Save"},
+   :nodeId "-1000000017",
+   :parentId "69",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Save"},
+   :nodeId "-1000000020",
+   :parentId "72",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Key"},
+   :nodeId "-1000000021",
+   :parentId "73",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Value"},
+   :nodeId "-1000000022",
+   :parentId "74",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "plan"},
+   :nodeId "-1000000023",
+   :parentId "75",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "pro"},
+   :nodeId "-1000000024",
+   :parentId "76",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}],
+ :form-backend-ids
+ #{1
+   2
+   3
+   17
+   18
+   19
+   20
+   21
+   22
+   23
+   24
+   25
+   26
+   27
+   28
+   29
+   30
+   31
+   32
+   33
+   34
+   35
+   61
+   62
+   63
+   64
+   65
+   66
+   80
+   81
+   82
+   83
+   84
+   85
+   86
+   87
+   88},
+ :mutated
+ [{:role {:type "internalRole", :value "RootWebArea"},
+   :properties
+   [{:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "focused", :value {:type "booleanOrUndefined", :value true}}
+    {:name "url",
+     :value {:type "string", :value "file:///fixture/page.html"}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "aria-label", :superseded true, :type "attribute"}
+     {:nativeSource "title",
+      :type "relatedElement",
+      :value {:type "computedString", :value "Snapshot fixture"}}],
+    :type "computedString",
+    :value "Snapshot fixture"},
+   :frameId "84EFD1B158AC9A6EEEAA2E39802E940B",
+   :nodeId "4",
+   :chromeRole {:type "internalRole", :value 144},
+   :backendDOMNodeId 4,
+   :childIds ["6"],
+   :ignored false}
+  {:backendDOMNodeId 6,
+   :childIds ["9"],
+   :chromeRole {:type "internalRole", :value 0},
+   :ignored true,
+   :ignoredReasons
+   [{:name "uninteresting", :value {:type "boolean", :value true}}],
+   :nodeId "6",
+   :parentId "4",
+   :role {:type "role", :value "none"}}
+  {:backendDOMNodeId 9,
+   :childIds ["10" "13"],
+   :chromeRole {:type "internalRole", :value 0},
+   :ignored true,
+   :ignoredReasons
+   [{:name "uninteresting", :value {:type "boolean", :value true}}],
+   :nodeId "9",
+   :parentId "6",
+   :role {:type "role", :value "none"}}
+  {:role {:type "role", :value "navigation"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label",
+      :attributeValue {:type "string", :value "Primary"},
+      :type "attribute",
+      :value {:type "computedString", :value "Primary"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Primary"},
+   :nodeId "10",
+   :chromeRole {:type "internalRole", :value 130},
+   :backendDOMNodeId 10,
+   :childIds ["11" "55" "12"],
+   :parentId "9",
+   :ignored false}
+  {:role {:type "role", :value "main"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "13",
+   :chromeRole {:type "internalRole", :value 118},
+   :backendDOMNodeId 13,
+   :childIds ["14" "15" "1" "36" "52"],
+   :parentId "9",
+   :ignored false}
+  {:role {:type "role", :value "link"},
+   :properties
+   [{:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "url", :value {:type "string", :value "file:///home"}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents", :value {:type "computedString", :value "Home"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Home"},
+   :nodeId "11",
+   :chromeRole {:type "internalRole", :value 110},
+   :backendDOMNodeId 11,
+   :childIds ["54"],
+   :parentId "10",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents", :value {:type "computedString", :value " "}}],
+    :type "computedString",
+    :value " "},
+   :nodeId "55",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 55,
+   :childIds ["-1000000003"],
+   :parentId "10",
+   :ignored false}
+  {:role {:type "role", :value "link"},
+   :properties
+   [{:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "url", :value {:type "string", :value "file:///docs"}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents", :value {:type "computedString", :value "Docs"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Docs"},
+   :nodeId "12",
+   :chromeRole {:type "internalRole", :value 110},
+   :backendDOMNodeId 12,
+   :childIds ["56"],
+   :parentId "10",
+   :ignored false}
+  {:role {:type "role", :value "heading"},
+   :properties [{:name "level", :value {:type "integer", :value 1}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents",
+      :value {:type "computedString", :value "Account settings​"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Account settings​"},
+   :nodeId "14",
+   :chromeRole {:type "internalRole", :value 96},
+   :backendDOMNodeId 14,
+   :childIds ["57"],
+   :parentId "13",
+   :ignored false}
+  {:role {:type "role", :value "paragraph"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "15",
+   :chromeRole {:type "internalRole", :value 133},
+   :backendDOMNodeId 15,
+   :childIds ["58" "59" "60"],
+   :parentId "13",
+   :ignored false}
+  {:role {:type "role", :value "form"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label",
+      :attributeValue {:type "string", :value "Profile"},
+      :type "attribute",
+      :value {:type "computedString", :value "Profile"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Profile"},
+   :nodeId "1",
+   :chromeRole {:type "internalRole", :value 87},
+   :backendDOMNodeId 1,
+   :childIds ["89" "17" "2" "19" "3" "33" "34" "35"],
+   :parentId "13",
+   :ignored false}
+  {:role {:type "role", :value "region"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label",
+      :attributeValue {:type "string", :value "Items"},
+      :type "attribute",
+      :value {:type "computedString", :value "Items"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Items"},
+   :nodeId "36",
+   :chromeRole {:type "internalRole", :value 143},
+   :backendDOMNodeId 36,
+   :childIds ["37" "42"],
+   :parentId "13",
+   :ignored false}
+  {:role {:type "role", :value "paragraph"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "52",
+   :chromeRole {:type "internalRole", :value 133},
+   :backendDOMNodeId 52,
+   :childIds [],
+   :parentId "13",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Home"}}],
+    :type "computedString",
+    :value "Home"},
+   :nodeId "54",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 54,
+   :childIds ["-1000000002"],
+   :parentId "11",
+   :ignored false}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value " "},
+   :nodeId "-1000000003",
+   :parentId "55",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Docs"}}],
+    :type "computedString",
+    :value "Docs"},
+   :nodeId "56",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 56,
+   :childIds ["-1000000004"],
+   :parentId "12",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Account settings​"}}],
+    :type "computedString",
+    :value "Account settings​"},
+   :nodeId "57",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 57,
+   :childIds ["-1000000005"],
+   :parentId "14",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Signed in as "}}],
+    :type "computedString",
+    :value "Signed in as "},
+   :nodeId "58",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 58,
+   :childIds ["-1000000006"],
+   :parentId "15",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "ada"}}],
+    :type "computedString",
+    :value "ada"},
+   :nodeId "59",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 59,
+   :childIds ["-1000000007"],
+   :parentId "15",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value " since 2024."}}],
+    :type "computedString",
+    :value " since 2024."},
+   :nodeId "60",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 60,
+   :childIds ["-1000000008"],
+   :parentId "15",
+   :ignored false}
+  {:role {:type "role", :value "button"},
+   :properties
+   [{:name "invalid", :value {:type "token", :value "false"}}
+    {:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "label", :type "relatedElement"}
+     {:type "contents", :value {:type "computedString", :value "Undo"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Undo"},
+   :nodeId "89",
+   :chromeRole {:type "internalRole", :value 9},
+   :backendDOMNodeId 89,
+   :childIds ["90"],
+   :parentId "1",
+   :ignored false}
+  {:role {:type "internalRole", :value "LabelText"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "17",
+   :chromeRole {:type "internalRole", :value 104},
+   :backendDOMNodeId 17,
+   :childIds ["61"],
+   :parentId "1",
+   :ignored false}
+  {:role {:type "role", :value "textbox"},
+   :properties
+   [{:name "invalid", :value {:type "token", :value "false"}}
+    {:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "editable", :value {:type "token", :value "plaintext"}}
+    {:name "settable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "multiline", :value {:type "boolean", :value false}}
+    {:name "readonly", :value {:type "boolean", :value false}}
+    {:name "required", :value {:type "boolean", :value true}}
+    {:name "labelledby",
+     :value
+     {:relatedNodes [{:backendDOMNodeId 17, :text "Name"}],
+      :type "nodeList"}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "labelfor",
+      :nativeSourceValue
+      {:relatedNodes [{:backendDOMNodeId 17, :text "Name"}],
+       :type "nodeList"},
+      :type "relatedElement",
+      :value {:type "computedString", :value "Name"}}
+     {:attribute "title", :superseded true, :type "attribute"}
+     {:attribute "placeholder", :superseded true, :type "placeholder"}
+     {:attribute "aria-placeholder",
+      :superseded true,
+      :type "placeholder"}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Name"},
+   :value {:type "string", :value "Ada"},
+   :nodeId "2",
+   :chromeRole {:type "internalRole", :value 170},
+   :backendDOMNodeId 2,
+   :childIds ["18"],
+   :parentId "1",
+   :ignored false}
+  {:backendDOMNodeId 19,
+   :childIds ["20" "63"],
+   :chromeRole {:type "internalRole", :value 0},
+   :ignored true,
+   :ignoredReasons
+   [{:name "labelFor",
+     :value {:relatedNodes [{:backendDOMNodeId 20}], :type "idref"}}],
+   :nodeId "19",
+   :parentId "1",
+   :role {:type "role", :value "none"}}
+  {:role {:type "role", :value "checkbox"},
+   :properties
+   [{:name "invalid", :value {:type "token", :value "false"}}
+    {:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "checked", :value {:type "tristate", :value "true"}}
+    {:name "labelledby",
+     :value
+     {:relatedNodes [{:backendDOMNodeId 19, :text " Subscribe"}],
+      :type "nodeList"}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "labelwrapped",
+      :nativeSourceValue
+      {:relatedNodes [{:backendDOMNodeId 19, :text " Subscribe"}],
+       :type "nodeList"},
+      :type "relatedElement",
+      :value {:type "computedString", :value "Subscribe"}}
+     {:superseded true, :type "contents"}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Subscribe"},
+   :nodeId "20",
+   :chromeRole {:type "internalRole", :value 14},
+   :backendDOMNodeId 20,
+   :childIds [],
+   :parentId "19",
+   :ignored false}
+  {:backendDOMNodeId 63,
+   :childIds [],
+   :chromeRole {:type "internalRole", :value 0},
+   :ignored true,
+   :ignoredReasons
+   [{:name "presentationalRole",
+     :value {:type "boolean", :value true}}],
+   :nodeId "63",
+   :parentId "19",
+   :role {:type "role", :value "none"}}
+  {:role {:type "role", :value "combobox"},
+   :properties
+   [{:name "invalid", :value {:type "token", :value "false"}}
+    {:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "hasPopup", :value {:type "token", :value "menu"}}
+    {:name "expanded",
+     :value {:type "booleanOrUndefined", :value false}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label",
+      :attributeValue {:type "string", :value "Plan"},
+      :type "attribute",
+      :value {:type "computedString", :value "Plan"}}
+     {:nativeSource "label", :superseded true, :type "relatedElement"}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Plan"},
+   :value {:type "string", :value "Pro"},
+   :nodeId "3",
+   :chromeRole {:type "internalRole", :value 209},
+   :backendDOMNodeId 3,
+   :childIds ["23"],
+   :parentId "1",
+   :ignored false}
+  {:role {:type "role", :value "button"},
+   :properties
+   [{:name "invalid", :value {:type "token", :value "false"}}
+    {:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "label", :type "relatedElement"}
+     {:type "contents", :value {:type "computedString", :value "Save"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Save"},
+   :nodeId "33",
+   :chromeRole {:type "internalRole", :value 9},
+   :backendDOMNodeId 33,
+   :childIds ["64"],
+   :parentId "1",
+   :ignored false}
+  {:role {:type "role", :value "button"},
+   :properties
+   [{:name "disabled", :value {:type "boolean", :value true}}
+    {:name "invalid", :value {:type "token", :value "false"}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "label", :type "relatedElement"}
+     {:type "contents",
+      :value {:type "computedString", :value "Delete"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Delete"},
+   :nodeId "34",
+   :chromeRole {:type "internalRole", :value 9},
+   :backendDOMNodeId 34,
+   :childIds ["65"],
+   :parentId "1",
+   :ignored false}
+  {:role {:type "role", :value "button"},
+   :properties
+   [{:name "invalid", :value {:type "token", :value "false"}}
+    {:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "expanded",
+     :value {:type "booleanOrUndefined", :value false}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "label", :type "relatedElement"}
+     {:type "contents", :value {:type "computedString", :value "More"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "More"},
+   :nodeId "35",
+   :chromeRole {:type "internalRole", :value 9},
+   :backendDOMNodeId 35,
+   :childIds ["66"],
+   :parentId "1",
+   :ignored false}
+  {:role {:type "role", :value "list"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "37",
+   :chromeRole {:type "internalRole", :value 111},
+   :backendDOMNodeId 37,
+   :childIds ["38" "40"],
+   :parentId "36",
+   :ignored false}
+  {:role {:type "role", :value "table"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "tablecaption", :type "relatedElement"}
+     {:attribute "summary", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "42",
+   :chromeRole {:type "internalRole", :value 167},
+   :backendDOMNodeId 42,
+   :childIds ["43"],
+   :parentId "36",
+   :ignored false}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Home"},
+   :nodeId "-1000000002",
+   :parentId "54",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Docs"},
+   :nodeId "-1000000004",
+   :parentId "56",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Account settings​"},
+   :nodeId "-1000000005",
+   :parentId "57",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Signed in as "},
+   :nodeId "-1000000006",
+   :parentId "58",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "ada"},
+   :nodeId "-1000000007",
+   :parentId "59",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value " since 2024."},
+   :nodeId "-1000000008",
+   :parentId "60",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Undo"}}],
+    :type "computedString",
+    :value "Undo"},
+   :nodeId "90",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 90,
+   :childIds ["-1000000026"],
+   :parentId "89",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Name"}}],
+    :type "computedString",
+    :value "Name"},
+   :nodeId "61",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 61,
+   :childIds ["-1000000027"],
+   :parentId "17",
+   :ignored false}
+  {:role {:type "role", :value "generic"},
+   :properties
+   [{:name "editable", :value {:type "token", :value "plaintext"}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "18",
+   :chromeRole {:type "internalRole", :value 88},
+   :backendDOMNodeId 18,
+   :childIds ["62"],
+   :parentId "2",
+   :ignored false}
+  {:role {:type "internalRole", :value "MenuListPopup"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "23",
+   :chromeRole {:type "internalRole", :value 128},
+   :backendDOMNodeId 23,
+   :childIds ["27" "30"],
+   :parentId "3",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Save"}}],
+    :type "computedString",
+    :value "Save"},
+   :nodeId "64",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 64,
+   :childIds ["-1000000012"],
+   :parentId "33",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Delete"}}],
+    :type "computedString",
+    :value "Delete"},
+   :nodeId "65",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 65,
+   :childIds ["-1000000013"],
+   :parentId "34",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "More"}}],
+    :type "computedString",
+    :value "More"},
+   :nodeId "66",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 66,
+   :childIds ["-1000000014"],
+   :parentId "35",
+   :ignored false}
+  {:role {:type "role", :value "listitem"},
+   :properties [{:name "level", :value {:type "integer", :value 1}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "38",
+   :chromeRole {:type "internalRole", :value 115},
+   :backendDOMNodeId 38,
+   :childIds ["67" "68" "39"],
+   :parentId "37",
+   :ignored false}
+  {:role {:type "role", :value "listitem"},
+   :properties [{:name "level", :value {:type "integer", :value 1}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "40",
+   :chromeRole {:type "internalRole", :value 115},
+   :backendDOMNodeId 40,
+   :childIds ["70" "71" "41"],
+   :parentId "37",
+   :ignored false}
+  {:backendDOMNodeId 43,
+   :childIds ["44" "47"],
+   :chromeRole {:type "internalRole", :value 0},
+   :ignored true,
+   :ignoredReasons
+   [{:name "uninteresting", :value {:type "boolean", :value true}}],
+   :nodeId "43",
+   :parentId "42",
+   :role {:type "role", :value "none"}}
+  {:role {:type "role", :value "row"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "44",
+   :chromeRole {:type "internalRole", :value 145},
+   :backendDOMNodeId 44,
+   :childIds ["45" "46"],
+   :parentId "43",
+   :ignored false}
+  {:role {:type "role", :value "row"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:attribute "title", :type "attribute"}],
+    :type "computedString",
+    :value ""},
+   :nodeId "47",
+   :chromeRole {:type "internalRole", :value 145},
+   :backendDOMNodeId 47,
+   :childIds ["48" "49"],
+   :parentId "43",
+   :ignored false}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Undo"},
+   :nodeId "-1000000026",
+   :parentId "90",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Name"},
+   :nodeId "-1000000027",
+   :parentId "61",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties
+   [{:name "editable", :value {:type "token", :value "plaintext"}}],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Ada"}}],
+    :type "computedString",
+    :value "Ada"},
+   :nodeId "62",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 62,
+   :childIds ["-1000000010"],
+   :parentId "18",
+   :ignored false}
+  {:role {:type "role", :value "option"},
+   :properties
+   [{:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "selected",
+     :value {:type "booleanOrUndefined", :value false}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents", :value {:type "computedString", :value "Free"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Free"},
+   :nodeId "27",
+   :chromeRole {:type "internalRole", :value 127},
+   :backendDOMNodeId 27,
+   :childIds [],
+   :parentId "23",
+   :ignored false}
+  {:role {:type "role", :value "option"},
+   :properties
+   [{:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}
+    {:name "selected",
+     :value {:type "booleanOrUndefined", :value true}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents", :value {:type "computedString", :value "Pro"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Pro"},
+   :nodeId "30",
+   :chromeRole {:type "internalRole", :value 127},
+   :backendDOMNodeId 30,
+   :childIds [],
+   :parentId "23",
+   :ignored false}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Save"},
+   :nodeId "-1000000012",
+   :parentId "64",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Delete"},
+   :nodeId "-1000000013",
+   :parentId "65",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "More"},
+   :nodeId "-1000000014",
+   :parentId "66",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:role {:type "internalRole", :value "ListMarker"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents", :value {:type "computedString", :value "• "}}],
+    :type "computedString",
+    :value "• "},
+   :nodeId "67",
+   :chromeRole {:type "internalRole", :value 116},
+   :backendDOMNodeId 67,
+   :childIds ["-1000000015"],
+   :parentId "38",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "First "}}],
+    :type "computedString",
+    :value "First "},
+   :nodeId "68",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 68,
+   :childIds ["-1000000016"],
+   :parentId "38",
+   :ignored false}
+  {:role {:type "role", :value "button"},
+   :properties
+   [{:name "invalid", :value {:type "token", :value "false"}}
+    {:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "label", :type "relatedElement"}
+     {:type "contents", :value {:type "computedString", :value "Save"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Save"},
+   :nodeId "39",
+   :chromeRole {:type "internalRole", :value 9},
+   :backendDOMNodeId 39,
+   :childIds ["69"],
+   :parentId "38",
+   :ignored false}
+  {:role {:type "internalRole", :value "ListMarker"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents", :value {:type "computedString", :value "• "}}],
+    :type "computedString",
+    :value "• "},
+   :nodeId "70",
+   :chromeRole {:type "internalRole", :value 116},
+   :backendDOMNodeId 70,
+   :childIds ["-1000000018"],
+   :parentId "40",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Second "}}],
+    :type "computedString",
+    :value "Second "},
+   :nodeId "71",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 71,
+   :childIds ["-1000000019"],
+   :parentId "40",
+   :ignored false}
+  {:role {:type "role", :value "button"},
+   :properties
+   [{:name "invalid", :value {:type "token", :value "false"}}
+    {:name "focusable",
+     :value {:type "booleanOrUndefined", :value true}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:nativeSource "label", :type "relatedElement"}
+     {:type "contents", :value {:type "computedString", :value "Save"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Save"},
+   :nodeId "41",
+   :chromeRole {:type "internalRole", :value 9},
+   :backendDOMNodeId 41,
+   :childIds ["72"],
+   :parentId "40",
+   :ignored false}
+  {:role {:type "role", :value "columnheader"},
+   :properties
+   [{:name "readonly", :value {:type "boolean", :value false}}
+    {:name "required", :value {:type "boolean", :value false}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents", :value {:type "computedString", :value "Key"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Key"},
+   :nodeId "45",
+   :chromeRole {:type "internalRole", :value 19},
+   :backendDOMNodeId 45,
+   :childIds ["73"],
+   :parentId "44",
+   :ignored false}
+  {:role {:type "role", :value "columnheader"},
+   :properties
+   [{:name "readonly", :value {:type "boolean", :value false}}
+    {:name "required", :value {:type "boolean", :value false}}],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents",
+      :value {:type "computedString", :value "Value"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "Value"},
+   :nodeId "46",
+   :chromeRole {:type "internalRole", :value 19},
+   :backendDOMNodeId 46,
+   :childIds ["74"],
+   :parentId "44",
+   :ignored false}
+  {:role {:type "role", :value "cell"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents", :value {:type "computedString", :value "plan"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "plan"},
+   :nodeId "48",
+   :chromeRole {:type "internalRole", :value 13},
+   :backendDOMNodeId 48,
+   :childIds ["75"],
+   :parentId "47",
+   :ignored false}
+  {:role {:type "role", :value "cell"},
+   :properties [],
+   :name
+   {:sources
+    [{:attribute "aria-labelledby", :type "relatedElement"}
+     {:attribute "aria-label", :type "attribute"}
+     {:type "contents", :value {:type "computedString", :value "pro"}}
+     {:attribute "title", :superseded true, :type "attribute"}],
+    :type "computedString",
+    :value "pro"},
+   :nodeId "49",
+   :chromeRole {:type "internalRole", :value 13},
+   :backendDOMNodeId 49,
+   :childIds ["76"],
+   :parentId "47",
+   :ignored false}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Ada"},
+   :nodeId "-1000000010",
+   :parentId "62",
+   :properties
+   [{:name "editable", :value {:type "token", :value "plaintext"}}],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 0},
+   :ignored true,
+   :ignoredReasons
+   [{:name "presentationalRole",
+     :value {:type "boolean", :value true}}],
+   :nodeId "-1000000015",
+   :parentId "67",
+   :role {:type "role", :value "none"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "First "},
+   :nodeId "-1000000016",
+   :parentId "68",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Save"}}],
+    :type "computedString",
+    :value "Save"},
+   :nodeId "69",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 69,
+   :childIds ["-1000000017"],
+   :parentId "39",
+   :ignored false}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 0},
+   :ignored true,
+   :ignoredReasons
+   [{:name "presentationalRole",
+     :value {:type "boolean", :value true}}],
+   :nodeId "-1000000018",
+   :parentId "70",
+   :role {:type "role", :value "none"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Second "},
+   :nodeId "-1000000019",
+   :parentId "71",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Save"}}],
+    :type "computedString",
+    :value "Save"},
+   :nodeId "72",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 72,
+   :childIds ["-1000000020"],
+   :parentId "41",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Key"}}],
+    :type "computedString",
+    :value "Key"},
+   :nodeId "73",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 73,
+   :childIds ["-1000000021"],
+   :parentId "45",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "Value"}}],
+    :type "computedString",
+    :value "Value"},
+   :nodeId "74",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 74,
+   :childIds ["-1000000022"],
+   :parentId "46",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "plan"}}],
+    :type "computedString",
+    :value "plan"},
+   :nodeId "75",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 75,
+   :childIds ["-1000000023"],
+   :parentId "48",
+   :ignored false}
+  {:role {:type "internalRole", :value "StaticText"},
+   :properties [],
+   :name
+   {:sources
+    [{:type "contents",
+      :value {:type "computedString", :value "pro"}}],
+    :type "computedString",
+    :value "pro"},
+   :nodeId "76",
+   :chromeRole {:type "internalRole", :value 158},
+   :backendDOMNodeId 76,
+   :childIds ["-1000000024"],
+   :parentId "49",
+   :ignored false}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Save"},
+   :nodeId "-1000000017",
+   :parentId "69",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Save"},
+   :nodeId "-1000000020",
+   :parentId "72",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Key"},
+   :nodeId "-1000000021",
+   :parentId "73",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "Value"},
+   :nodeId "-1000000022",
+   :parentId "74",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "plan"},
+   :nodeId "-1000000023",
+   :parentId "75",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}
+  {:childIds [],
+   :chromeRole {:type "internalRole", :value 101},
+   :ignored false,
+   :name {:type "computedString", :value "pro"},
+   :nodeId "-1000000024",
+   :parentId "76",
+   :properties [],
+   :role {:type "internalRole", :value "InlineTextBox"}}]}

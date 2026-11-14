@@ -1,15 +1,23 @@
 (ns webdriver.core
-  "Proof of concept: drive a real browser from kmet through Etaoin (W3C
-  WebDriver), with no agent-browser CLI in between. One tool, `webdriver`,
-  holds a single lazily started session per extension load."
+  "Drive a real browser from kmet through Etaoin (W3C WebDriver), with no
+  agent-browser CLI in between. One tool, `webdriver`, holds a single lazily
+  started session per extension load. `snapshot` renders the accessibility
+  tree with element refs (webdriver.snapshot); actions accept `ref`."
   (:require [babashka.fs :as fs]
             [clojure.string :as str]
             [etaoin.api :as e]
-            [kmet.extension :as ext]))
+            [kmet.extension :as ext]
+            [webdriver.snapshot :as snap]))
 
 (def ^:private max-text-chars 8000)
 
-(defonce ^:private session (atom nil))
+(def ^:private max-snapshot-chars 30000)
+
+(def ^:private session (atom nil))
+
+(def ^:private refs
+  "Snapshot ref state (see webdriver.snapshot), reset with the session."
+  (atom nil))
 
 ;; ─── Configuration ───────────────────────────────────────────────────────
 
@@ -41,22 +49,114 @@
 (defn stop!
   "Quit the browser and the chromedriver process, if running."
   []
+  (reset! refs nil)
   (when-let [driver @session]
     (reset! session nil)
     (try (e/quit driver) (catch Throwable _ nil))))
 
+;; ─── Chrome DevTools (via chromedriver's goog/cdp/execute) ───────────────
+
+(defn- cdp
+  "One Chrome DevTools command over the WebDriver session."
+  [driver cmd params]
+  (:value (e/execute {:driver driver :method :post
+                      :path [:session (:session driver) :goog :cdp :execute]
+                      :data {:cmd cmd :params params}})))
+
+(defn- ax-nodes [driver] (:nodes (cdp driver "Accessibility.getFullAXTree" {})))
+
+(defn- document-id
+  "The main frame's loader id: it changes on every navigation, which retires refs."
+  [driver]
+  (get-in (cdp driver "Page.getFrameTree" {}) [:frameTree :frame :loaderId]))
+
+(defn- subtree-backend-ids
+  "DOM backend ids under the first element matching CSS SELECTOR."
+  [driver selector]
+  (let [root (get-in (cdp driver "DOM.getDocument" {:depth 0}) [:root :nodeId])
+        node-id (:nodeId (cdp driver "DOM.querySelector" {:nodeId root :selector selector}))]
+    (when (or (nil? node-id) (zero? node-id))
+      (throw (ex-info (str "Selector " (pr-str selector) " did not match any element") {})))
+    (letfn [(ids [n] (into #{(:backendNodeId n)} (mapcat ids)
+                           (concat (:children n) (:shadowRoots n))))]
+      (ids (:node (cdp driver "DOM.describeNode" {:nodeId node-id :depth -1 :pierce true}))))))
+
+(def ^:private ref-attr "data-kmet-ref")
+
+(defn- tag-backend-node!
+  "Mark the element with BACKEND-ID with `data-kmet-ref=REF`. Returns false when
+  the node no longer exists in the live document."
+  [driver backend-id ref]
+  (try
+    (let [object-id (get-in (cdp driver "DOM.resolveNode" {:backendNodeId backend-id})
+                            [:object :objectId])]
+      (true? (get-in (cdp driver "Runtime.callFunctionOn"
+                          {:objectId object-id
+                           :functionDeclaration
+                           (str "function(r){ if (!this.isConnected) return false;"
+                                " document.querySelectorAll('[" ref-attr "]').forEach(e => e.removeAttribute('" ref-attr "'));"
+                                " this.setAttribute('" ref-attr "', r); return true; }")
+                           :arguments [{:value ref}]
+                           :returnByValue true})
+                     [:result :value])))
+    (catch Throwable _ false)))
+
+(defn- ref-query!
+  "Resolve REF to a CSS query for a WebDriver action. The cached backend node is
+  tried first; a stale node is recovered by unique role+name (as agent-browser
+  does), else the error asks for a new snapshot."
+  [driver ref-arg]
+  (let [ref (or (snap/parse-ref ref-arg)
+                (throw (ex-info (str "Not a ref: " (pr-str ref-arg) " (expected e.g. e7)") {})))
+        state @refs
+        entry (or (get-in state [:refs ref])
+                  (throw (ex-info (str "Unknown ref " ref ". Take a snapshot first.") {})))
+        _ (when (not= (:doc state) (document-id driver))
+            (throw (ex-info (str "Ref " ref " is from a previous page. Take a new snapshot.") {})))
+        ;; a connected backend node is the same element, even if its text changed
+        live? (tag-backend-node! driver (:backend-id entry) ref)]
+    (when-not live?
+      (let [fresh (snap/recover entry (ax-nodes driver))]
+        (when-not (tag-backend-node! driver fresh ref)
+          (throw (ex-info (str "Ref " ref " could not be resolved. Take a new snapshot.") {})))
+        (swap! refs #(-> %
+                         (assoc-in [:refs ref :backend-id] fresh)
+                         (update :by-backend dissoc (:backend-id entry))
+                         (assoc-in [:by-backend fresh] ref)))))
+    {:css (str "[" ref-attr "='" ref "']")}))
+
+(defn take-snapshot!
+  "Snapshot the page, advancing the ref state."
+  [driver {:keys [selector interactive compact depth urls]}]
+  (let [doc (document-id driver)
+        opts (cond-> {:interactive (boolean interactive) :compact (boolean compact) :urls (boolean urls)}
+               depth (assoc :depth (long depth))
+               selector (assoc :within (subtree-backend-ids driver selector)))
+        nodes (ax-nodes driver)
+        result (volatile! nil)]
+    (swap! refs (fn [state]
+                  (let [r (snap/snapshot state doc nodes opts)]
+                    (vreset! result r)
+                    (:state r))))
+    @result))
+
 ;; ─── Actions ─────────────────────────────────────────────────────────────
 
-(defn- truncate [s]
-  (let [s (str s)]
-    (if (> (count s) max-text-chars)
-      (str (subs s 0 max-text-chars) "\n… [truncated " (- (count s) max-text-chars) " chars]")
-      s)))
+(defn- truncate
+  ([s] (truncate s max-text-chars))
+  ([s limit]
+   (let [s (str s)]
+     (if (> (count s) limit)
+       (str (subs s 0 limit) "\n… [truncated " (- (count s) limit) " chars]")
+       s))))
 
-(defn- query-of [{:keys [selector xpath]}]
-  (cond xpath {:xpath xpath}
+(defn- query-of
+  "The element query for ARGS: :ref (from a snapshot), :selector (CSS) or :xpath."
+  [driver {:keys [ref selector xpath]}]
+  (cond ref (ref-query! driver ref)
+        xpath {:xpath xpath}
         selector {:css selector}
-        :else (throw (ex-info "selector (CSS) or xpath is required" {}))))
+        :else (throw (ex-info "ref, selector (CSS) or xpath is required" {}))))
 
 (defn- wait-for! [driver q timeout]
   (e/wait-visible driver q {:timeout (or timeout 10)}))
@@ -86,20 +186,24 @@
                  (e/go driver url)
                  (text-result (page-summary driver)))
         "info" (text-result (page-summary driver))
-        "text" (let [q (if (or (:selector args) (:xpath args)) (query-of args) {:css "body"})]
+        "snapshot" (let [{:keys [text refs]} (take-snapshot! driver args)]
+                     {:content (str (page-summary driver) "\nrefs: " refs "\n\n"
+                                    (truncate text max-snapshot-chars))
+                      :is-error false})
+        "text" (let [q (if (or (:ref args) (:selector args) (:xpath args)) (query-of driver args) {:css "body"})]
                  (wait-for! driver q timeout)
                  (text-result (str/join "\n---\n" (map #(e/get-element-text-el driver %)
                                                        (e/query-all driver q)))))
-        "click" (let [q (query-of args)]
+        "click" (let [q (query-of driver args)]
                   (wait-for! driver q timeout)
                   (e/click driver q)
                   (text-result (str "Clicked.\n" (page-summary driver))))
-        "fill" (let [q (query-of args)]
+        "fill" (let [q (query-of driver args)]
                  (wait-for! driver q timeout)
                  (e/clear driver q)
                  (send-keys! driver q (str text))
                  (text-result "Filled."))
-        "wait" (do (wait-for! driver (query-of args) timeout) (text-result "Visible."))
+        "wait" (do (wait-for! driver (query-of driver args) timeout) (text-result "Visible."))
         "js" (text-result (pr-str (e/js-execute driver (or script "return document.title;"))))
         "source" (text-result (e/get-source driver))
         "screenshot" (let [b64 (:value (e/execute {:driver driver :method :get
@@ -129,13 +233,18 @@
 
 (def ^:private params
   {:action {:type :string
-            :description "start | go | info | text | click | fill | wait | js | source | screenshot | quit"}
+            :description "start | go | info | snapshot | text | click | fill | wait | js | source | screenshot | quit"}
    :url {:type :string :description "go: URL to open" :optional? true}
-   :selector {:type :string :description "CSS selector (text/click/fill/wait)" :optional? true}
+   :ref {:type :string :description "Element ref from the latest snapshot, e.g. e7 (text/click/fill/wait)" :optional? true}
+   :selector {:type :string :description "CSS selector (text/click/fill/wait); snapshot: limit to this subtree" :optional? true}
    :xpath {:type :string :description "XPath, alternative to selector" :optional? true}
    :text {:type :string :description "fill: value to type" :optional? true}
    :script {:type :string :description "js: script body; use `return` for a value" :optional? true}
-   :timeout {:type :number :description "Seconds to wait for the element (default 10)" :optional? true}})
+   :timeout {:type :number :description "Seconds to wait for the element (default 10)" :optional? true}
+   :interactive {:type :boolean :description "snapshot: only elements with refs" :optional? true}
+   :compact {:type :boolean :description "snapshot: drop unnamed structure" :optional? true}
+   :depth {:type :number :description "snapshot: max tree depth" :optional? true}
+   :urls {:type :boolean :description "snapshot: include link URLs" :optional? true}})
 
 (defn init [api]
   (let [config (or (:config api) {})]
@@ -144,7 +253,10 @@
                          :label "WebDriver"
                          :description (str "Control a headless Chromium through W3C WebDriver (Etaoin). "
                                            "The browser starts on first use and persists between calls. "
-                                           "Actions: start, go, info, text, click, fill, wait, js, source, screenshot, quit.")
+                                           "Use snapshot to see the page as an accessibility outline with refs "
+                                           "(e.g. `button \"Save\" [ref=e7]`), then act with ref=e7. "
+                                           "Refs stay valid until navigation; take a new snapshot after the page changes. "
+                                           "Actions: start, go, info, snapshot, text, click, fill, wait, js, source, screenshot, quit.")
                          :params params
                          :contextual? true
                          :execute (fn [args on-update signal ctx]

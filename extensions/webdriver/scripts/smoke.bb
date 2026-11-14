@@ -50,6 +50,44 @@
               img (first (:images r))]
           (check (and (= "image/png" (:mime-type img)) (str/starts-with? (:data img) "iVBOR"))
                  (str "screenshot PNG (" (count (:data img)) " b64 chars)")))
+        ;; ── snapshot + refs over the offline-test fixture page ──
+        (let [fixture (str "file://" (fs/path (fs/parent artifact) "test/fixtures/page.html"))
+              ref-of (fn [text pattern]
+                       (some #(when (str/includes? % pattern) (second (re-find #"ref=(e\d+)" %)))
+                             (str/split-lines text)))
+              _ (check (str/includes? (:content (run {:action "snapshot"})) "button \"Go\"")
+                       "snapshot of the first page")
+              _ (run {:action "go" :url fixture})
+              t0 (System/currentTimeMillis)
+              snap (:content (run {:action "snapshot" :interactive true}))
+              ms (- (System/currentTimeMillis) t0)
+              save (ref-of snap "button \"Save\"")
+              name-ref (ref-of snap "textbox \"Name\"")]
+          (check (and (str/includes? snap "refs: 20") (= "e11" save) (= "e6" name-ref))
+                 (str "snapshot refs match the offline fixture (" ms "ms)"))
+          (check (not (:is-error (run {:action "fill" :ref name-ref :text "Grace"}))) "fill by ref")
+          (check (not (:is-error (run {:action "click" :ref "@e11"}))) "click by @ref")
+          (check (= "Saved Grace" (:content (run {:action "text" :selector "#out"}))) "ref actions hit the right elements")
+          (check (= "pro" (:content (run {:action "text" :ref "e20"}))) "text by ref (table cell)")
+          (let [scoped (:content (run {:action "snapshot" :selector "#form" :interactive true}))]
+            (check (and (str/includes? scoped "form \"Profile\" [ref=e5]")
+                        (not (str/includes? scoped "navigation")))
+                   "selector limits the outline, refs keep page-wide numbers"))
+          ;; Re-render the Delete button: its node is replaced, so the ref is recovered by role+name.
+          (run {:action "js" :script "const b=[...document.querySelectorAll('button')].find(x=>x.textContent==='Delete'); b.replaceWith(b.cloneNode(true)); return 1;"})
+          (check (not (:is-error (run {:action "wait" :ref "e12" :timeout 2}))) "stale ref recovered by unique role+name")
+          (run {:action "js" :script "document.querySelectorAll('li button').forEach(b=>b.replaceWith(b.cloneNode(true))); return 1;"})
+          (let [r (run {:action "click" :ref "e15"})]
+            (check (and (:is-error r) (str/includes? (:content r) "new snapshot"))
+                   "ambiguous stale ref refused with a re-snapshot hint"))
+          (check (= "e21" (do (run {:action "js" :script "const b=document.createElement('button');b.textContent='Undo';document.querySelector('form').prepend(b);return 1;"})
+                              (ref-of (:content (run {:action "snapshot" :interactive true})) "Undo")))
+                 "new element gets the next ref; existing refs stay stable")
+          (run {:action "go" :url (str "file://" page)})
+          (let [r (run {:action "click" :ref "e11"})]
+            (check (and (:is-error r) (str/includes? (:content r) "previous page"))
+                   "refs expire on navigation"))
+          (check (:is-error (run {:action "click" :ref "e99"})) "unknown ref is a tool error"))
         (let [r (run {:action "text" :selector "#missing" :timeout 1})]
           (check (:is-error r) "missing element is a tool error, not an exception"))
         (check (:is-error ((:execute tool) {:action "info"} nil (atom true) {})) "cancel signal honored")
