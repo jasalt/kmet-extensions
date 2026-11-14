@@ -30,7 +30,12 @@ Uses the SCI loader. Native Jolt execution has not been verified.
 | `/web-remote status` / `url` | Show the URL again and the connected client count |
 | `/web-remote stop` | Stop the server and disconnect every client |
 
-The footer shows `web :PORT` while it runs. Open the URL shown; it carries a
+Command replies (the URL, warnings, errors) appear in the chat as ephemeral
+`[web-remote]` notices: part of the live transcript, never sent to the LLM
+nor saved to the session. Without a UI layout they fall back to a flash
+notification. The footer shows `web :PORT` while it runs.
+
+Open the URL shown; it carries a
 one-off token that is exchanged for a cookie. The server also stops when the
 extension unloads or kmet quits.
 

@@ -39,9 +39,11 @@
         api (-> api
                 (assoc-in [:session :get-branch] (fn [] @branch))
                 (assoc-in [:session :get-leaf-id] (fn [] @leaf))
+                (assoc-in [:ui :chat-info]
+                          (fn [label content] (swap! state update :ui-calls conj [:chat-info label content])))
                 (assoc-in [:models :get-available]
                           (fn [] [{:provider :p :id "m1"} {:provider :p :id "m2"}])))
-        ctx {:is-idle (fn [] (not @running?)) :has-pending-messages (fn [] false)
+        ctx {:has-ui true :is-idle (fn [] (not @running?)) :has-pending-messages (fn [] false)
              :abort (fn [] (swap! aborted inc)) :model {:provider :p :id "m1"}}
         st (core/init api)]
     {:api api :calls state :st st :ctx ctx :branch branch :leaf leaf :running? running? :aborted aborted}))
@@ -49,20 +51,26 @@
 (deftest command-and-registration
   (let [{:keys [api calls st ctx]} (fixture)
         cmd (get-in @calls [:commands "web-remote" :handler])
-        notes #(keep (fn [[k text]] (when (= :notify k) text)) (:ui-calls @calls))]
+        chat #(keep (fn [[k label text]] (when (= :chat-info k) [label text])) (:ui-calls @calls))
+        last-text #(second (last (chat)))]
     (is (contains? (:handlers @calls) :message-update))
     (cmd ctx "status")
-    (is (str/includes? (last (notes)) "not running"))
+    (is (str/includes? (last-text) "Not running"))
     (cmd ctx "start 70000")
-    (is (str/includes? (last (notes)) "/web-remote start"))
+    (is (= ["web-remote: warning" core/usage] (last (chat))))
     (cmd ctx "start")
-    (is (re-find #"http://127\.0\.0\.1:\d+/\?token=\S+" (last (notes))))
+    (is (re-find #"http://127\.0\.0\.1:\d+/\?token=\S+" (last-text)))
     (is (some #(= [:set-status "web-remote"] (take 2 %)) (:ui-calls @calls)))
     (cmd ctx "url")
-    (is (str/includes? (last (notes)) (core/url st)))
+    (is (str/includes? (last-text) (core/url st)))
     (cmd ctx "stop")
     (is (nil? (:server @st)))
-    (is (= "Web remote stopped." (last (notes))))
+    (is (= ["web-remote" "Stopped."] (last (chat))))
+    (is (not-any? #(= :notify (first %)) (:ui-calls @calls)) "chat notices, not flashes")
+    (testing "headless falls back to a flash"
+      (cmd (dissoc ctx :has-ui) "status")
+      (is (= [:notify (str "Not running. " core/usage) :info]
+             (last (:ui-calls @calls)))))
     (core/shutdown api)))
 
 (deftest server-end-to-end

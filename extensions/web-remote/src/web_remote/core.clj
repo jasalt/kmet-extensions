@@ -352,31 +352,43 @@
 
 (def usage "/web-remote start [port] | stop | status | url")
 
+(defn- notice-label [type]
+  (case type :warning "web-remote: warning" :error "web-remote: error" "web-remote"))
+
+(defn say!
+  "Report TEXT as an ephemeral chat notice (in the live transcript, never sent
+  to the LLM or persisted). Without a UI layout, chat-info is a no-op, so
+  fall back to a flash notification."
+  [api ctx text type]
+  (if (:has-ui ctx)
+    (ext/ui-chat-info api (notice-label type) text)
+    (ext/ui-notify api text type)))
+
 (defn command! [api state ctx args]
   (let [[cmd arg & more] (str/split (str/trim (or args "")) #"\s+")
-        notify! (fn [text type] (ext/ui-notify api text type {:duration-ms 8000}))]
+        say! (fn [text type] (say! api ctx text type))]
     (try
       (cond
-        (seq more) (notify! usage :warning)
+        (seq more) (say! usage :warning)
 
         (= "start" cmd)
         (let [port (if arg (http/parse-nat arg) 0)]
           (if (and port (<= 0 port 65535))
-            (notify! (str "Web remote: " (start! api state ctx port)) :info)
-            (notify! usage :warning)))
+            (say! (str "Started: " (start! api state ctx port)) :info)
+            (say! usage :warning)))
 
         (and (= "stop" cmd) (nil? arg))
-        (notify! (if (stop! api state) "Web remote stopped." "Web remote is not running.") :info)
+        (say! (if (stop! api state) "Stopped." "Not running.") :info)
 
         (and (#{"" "status" "url"} cmd) (nil? arg))
         (if (:server @state)
           (do (swap! state assoc :ctx ctx)
-              (notify! (str "Web remote: " (url state) " (" (count (:clients @state)) " clients)") :info))
-          (notify! (str "Web remote is not running. " usage) :info))
+              (say! (str (url state) " (" (count (:clients @state)) " clients)") :info))
+          (say! (str "Not running. " usage) :info))
 
-        :else (notify! usage :warning))
+        :else (say! usage :warning))
       (catch Exception e
-        (notify! (str "Web remote: " (ex-message e)) :error)))))
+        (say! (ex-message e) :error)))))
 
 (defonce ^:private runtime (atom nil))
 
