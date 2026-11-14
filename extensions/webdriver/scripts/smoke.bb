@@ -1,7 +1,8 @@
 ;; Real-browser smoke: loads the extension through kmet's SCI extension loader
 ;; and drives headless Chromium over a local file.
 ;; Run from a kmet checkout (chromedriver + chromium on PATH, or
-;; WEBDRIVER_CHROMEDRIVER / WEBDRIVER_BROWSER set):
+;; WEBDRIVER_CHROMEDRIVER / WEBDRIVER_BROWSER set; WEBDRIVER_SANDBOX=false in
+;; containers where Chromium cannot sandbox):
 ;;   bb ../kmet-extensions/extensions/webdriver/scripts/smoke.bb
 (require '[babashka.fs :as fs]
          '[clojure.string :as str]

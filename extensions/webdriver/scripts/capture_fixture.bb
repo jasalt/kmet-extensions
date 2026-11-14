@@ -1,6 +1,7 @@
 ;; Regenerate test/fixtures/ax.edn from test/fixtures/page.html with a real
 ;; Chromium (chromedriver + chromium on PATH). Plain bb, outside kmet:
 ;;   cd extensions/webdriver && bb --config /dev/null scripts/capture_fixture.bb
+;; Set WEBDRIVER_SANDBOX=false where Chromium cannot sandbox (containers).
 (require '[babashka.deps :as deps])
 (deps/add-deps '{:deps {etaoin/etaoin {:mvn/version "1.1.43"}}})
 (require '[babashka.fs :as fs]
@@ -27,7 +28,8 @@
         (mapcat backend-ids)
         (concat (:children node) (:shadowRoots node))))
 
-(let [d (e/chrome {:headless true :args ["--no-sandbox"]})]
+(let [d (e/chrome {:headless true
+                   :args (if (= "false" (System/getenv "WEBDRIVER_SANDBOX")) ["--no-sandbox"] [])})]
   (try
     (e/go d (str "file://" page))
     (let [loader (get-in (cdp d "Page.getFrameTree" {}) [:frameTree :frame :loaderId])

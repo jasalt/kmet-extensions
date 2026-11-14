@@ -27,14 +27,19 @@
 
 (defn driver-opts
   "Etaoin boot options from row CONFIG, then env, then PATH discovery.
-  Keys: :chromedriver, :browser, :headless (default true), :args."
+  Keys: :chromedriver, :browser, :headless (default true), :sandbox (default
+  true; false passes --no-sandbox, which containers often need), :args."
   [config]
   (let [driver (or (:chromedriver config) (System/getenv "WEBDRIVER_CHROMEDRIVER")
                    (which ["chromedriver"]))
         browser (or (:browser config) (System/getenv "WEBDRIVER_BROWSER")
-                    (which ["chromium" "chromium-browser" "google-chrome" "google-chrome-stable"]))]
+                    (which ["chromium" "chromium-browser" "google-chrome" "google-chrome-stable"]))
+        sandbox? (if (contains? config :sandbox)
+                   (boolean (:sandbox config))
+                   (not= "false" (System/getenv "WEBDRIVER_SANDBOX")))]
     (cond-> {:headless (if (contains? config :headless) (boolean (:headless config)) true)
-             :args (into ["--no-sandbox" "--disable-dev-shm-usage"] (:args config))}
+             :args (into (cond-> ["--disable-dev-shm-usage"] (not sandbox?) (conj "--no-sandbox"))
+                         (:args config))}
       driver (assoc :path-driver driver)
       browser (assoc :path-browser browser))))
 

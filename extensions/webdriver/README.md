@@ -100,8 +100,14 @@ variables, then `PATH`.
  :config {:chromedriver "/path/to/chromedriver"   ; or WEBDRIVER_CHROMEDRIVER
           :browser "/path/to/chromium"            ; or WEBDRIVER_BROWSER
           :headless true
+          :sandbox true                           ; or WEBDRIVER_SANDBOX=false
           :args ["--window-size=1280,900"]}}
 ```
+
+Chromium's sandbox is on by default, because the tool may visit any site.
+Containers without user namespaces usually cannot start a sandboxed Chromium
+("Chrome instance exited"). There, set `:sandbox false` or
+`WEBDRIVER_SANDBOX=false` to pass `--no-sandbox`.
 
 On Nix: `nix build nixpkgs#chromedriver nixpkgs#chromium`.
 
