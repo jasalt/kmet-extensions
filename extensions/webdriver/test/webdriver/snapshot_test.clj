@@ -148,5 +148,11 @@
           [state tagged] (snap/assign-refs nil "d" tree)]
       (is (= "- button \"Go\" [ref=e1]" (snap/render (snap/shape tagged {}))))
       (is (= {"e1" {:backend-id 9 :role "button" :name "Go"}} (:refs state)))))
+  (testing "a field whose name equals its value drops the repeated text"
+    (let [tree {:role "RootWebArea" :name ""
+                :children [{:role "textbox" :name "Ada" :value "Ada" :backend-id 3
+                            :children [{:role "StaticText" :name "Ada" :children []}]}]}
+          [_ tagged] (snap/assign-refs nil "d" tree)]
+      (is (= "- textbox \"Ada\" [ref=e1]" (snap/render (snap/shape tagged {}))))))
   (testing "render-line escapes names as EDN strings"
     (is (= "- link \"say \\\"hi\\\"\"" (snap/render-line {:role "link" :name "say \"hi\""} 0 false)))))

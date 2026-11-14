@@ -169,9 +169,9 @@
                                             (if (noise? c) (:children c) [c]))))
                        (:children node))
         ;; text that only repeats its parent's name or value adds nothing
-        children (if (and (= 1 (count children))
-                          (= "StaticText" (:role (first children)))
-                          (contains? #{(:name node) (:value node)} (:name (first children))))
+        text (when (and (= 1 (count children)) (= "StaticText" (:role (first children))))
+               (:name (first children)))
+        children (if (and text (or (= text (:name node)) (= text (:value node))))
                    []
                    children)]
     (assoc node :children children)))
