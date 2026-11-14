@@ -103,7 +103,10 @@
         api {:get-agent-dir (constantly dir)
              :send-user-message (fn [text _] (swap! sent conj text))
              :register-shortcut! (fn [k opts] (swap! shortcuts assoc k opts) #(swap! shortcuts dissoc k))
-             :ui {:set-status (fn [& _]) :notify (fn [m _] (swap! notes conj m))}}]
+             :ui {:set-status (fn [& _])
+                  :notify (fn [m _ & [opts]]
+                            (is (= {:duration-ms 5000} opts) "notices stay long enough to read")
+                            (swap! notes conj m))}}]
     (try
       (fs/create-dirs (str dir "/.kmet/extensions"))
       (spit (str dir "/.kmet/extensions/watcher.json") "{\"enabled\": false, \"shortcut\": \"f5\"}")

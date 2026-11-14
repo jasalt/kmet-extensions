@@ -5,6 +5,11 @@
             [kmet.libs.concurrent :as concurrent]
             [watcher.files :as files]))
 
+(defn- notify!
+  "Flash a watcher notice long enough to read (the host default is ~1s)."
+  [api message type]
+  (ext/ui-notify api message type {:duration-ms 5000}))
+
 (defn- ask [ctx k] (when-let [f (k ctx)] (f)))
 
 (defn idle? [ctx]
@@ -65,9 +70,9 @@
   "Scan now and send actionable markers, or report why nothing was sent."
   [api state]
   (case (tick! api state true)
-    :none (ext/ui-notify api "Watcher: no AI! or AI? markers found." :info)
-    :waiting (ext/ui-notify api "Watcher: agent busy; markers will be sent when idle." :info)
-    :error (ext/ui-notify api (str "Watcher: " (:error @state)) :error)
+    :none (notify! api "Watcher: no AI! or AI? markers found." :info)
+    :waiting (notify! api "Watcher: agent busy; markers will be sent when idle." :info)
+    :error (notify! api (str "Watcher: " (:error @state)) :error)
     nil))
 
 (defn stop! [api state]
@@ -129,27 +134,27 @@
             (swap! state assoc :config (files/config (:paths @state)) :error nil :cache (atom {}))
             (when (and (:has-ui ctx) (not (:loop @state))) (start-loop! api state))
             (status! api state)
-            (ext/ui-notify api (str "Watcher enabled: " (get-in @state [:config :enabled])) :info))
+            (notify! api (str "Watcher enabled: " (get-in @state [:config :enabled])) :info))
 
           (and (= 1 (count parts)) (#{"" "status" "config"} command))
-          (ext/ui-notify api
-                         (pr-str (assoc (select-keys @state [:cwd :paths :config :error])
-                                        :running? (some? (:loop @state))
-                                        :queued (count (:pending @state))
-                                        :active (count (:active @state))
-                                        :last-trigger (mapv #(select-keys % [:path :line :instruction])
-                                                            (:last-batch @state)))) :info)
+          (notify! api
+                   (pr-str (assoc (select-keys @state [:cwd :paths :config :error])
+                                  :running? (some? (:loop @state))
+                                  :queued (count (:pending @state))
+                                  :active (count (:active @state))
+                                  :last-trigger (mapv #(select-keys % [:path :line :instruction])
+                                                      (:last-batch @state)))) :info)
 
           (#{["check"] ["scan"]} parts) (check! api state)
           (= parts ["clear"]) (do (swap! state assoc :pending [] :processed #{} :signature nil :error nil :requested? false)
-                                    (ext/ui-notify api "Queue and ledger cleared; unchanged markers may trigger on the next scan." :info))
+                                    (notify! api "Queue and ledger cleared; unchanged markers may trigger on the next scan." :info))
           (= parts ["retry"])
           (if (:active @state)
-            (ext/ui-notify api "Wait for the active watcher batch to finish." :warning)
+            (notify! api "Wait for the active watcher batch to finish." :warning)
             (do (swap! state update :processed #(apply disj % (map :id (:last-batch @state))))
                 (check! api state)))
-          :else (ext/ui-notify api usage :warning)))
-      (catch Exception e (ext/ui-notify api (ex-message e) :error)))))
+          :else (notify! api usage :warning)))
+      (catch Exception e (notify! api (ex-message e) :error)))))
 
 ;; The host calls shutdown on unload with only api, so init's state is kept here.
 (defonce runtime (atom nil))
@@ -170,7 +175,7 @@
                                      (try (session! api state ctx)
                                           (catch Exception e
                                             (swap! state assoc :error (ex-message e))
-                                            (ext/ui-notify api (str "Watcher: " (ex-message e)) :error)))))
+                                            (notify! api (str "Watcher: " (ex-message e)) :error)))))
     (ext/on-event api :agent-end (fn [_ _] (swap! state assoc :ended? true)))
     (ext/on-event api :session-before-compact (fn [_ _] (swap! state assoc :compacting? true)))
     (doseq [event [:compaction-end :session-compact-failed]]
