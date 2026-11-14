@@ -179,11 +179,26 @@
             (try (write-response! out {:status status :body (ex-message e)}) (catch Exception _ nil))))
         (catch java.io.IOException _ nil)))))
 
+(defn loopback-literal? [a]
+  (boolean (or (str/starts-with? a "127.") (#{"::1" "0:0:0:0:0:0:0:1"} a))))
+
+(defn wildcard-literal? [a]
+  (contains? #{"0.0.0.0" "::" "0:0:0:0:0:0:0:0"} a))
+
+(defn- link-local-literal? [a]
+  (or (str/starts-with? a "169.254.") (str/starts-with? (str/lower-case a) "fe80:")))
+
+(defn- literal [addr]
+  (str/replace (.getHostAddress addr) #"%.*$" ""))
+
 (defn start!
-  "Listen on 127.0.0.1:PORT (0 = ephemeral) and serve each connection with
-  HANDLER on its own daemon thread. Answers {:port :socket :connections}."
-  [{:keys [port handler]}]
-  (let [ss (java.net.ServerSocket. (int (or port 0)) 50 (java.net.InetAddress/getByName "127.0.0.1"))
+  "Listen on HOST:PORT (HOST defaults to 127.0.0.1; PORT 0 = ephemeral) and
+  serve each connection with HANDLER on its own daemon thread. Answers
+  {:host :port :loopback? :wildcard? :socket :connections}; :host is the
+  bound address literal."
+  [{:keys [host port handler]}]
+  (let [addr (java.net.InetAddress/getByName (or host "127.0.0.1"))
+        ss (java.net.ServerSocket. (int (or port 0)) 50 addr)
         connections (atom #{})]
     (concurrent/spawn
      (fn []
@@ -199,7 +214,30 @@
                     (try (serve-connection! socket handler)
                          (finally (swap! connections disj socket)))))))
            (recur)))))
-    {:port (.getLocalPort ss) :socket ss :connections connections}))
+    {:host (literal addr)
+     :port (.getLocalPort ss)
+     :loopback? (loopback-literal? (literal addr))
+     :wildcard? (wildcard-literal? (literal addr))
+     :socket ss
+     :connections connections}))
+
+(defn interface-addresses
+  "Best-effort non-loopback address literals of this host (IPv4 first): the
+  default route's source address (a UDP connect sends no packet) plus the
+  local hostname's addresses. Babashka has no java.net.NetworkInterface."
+  []
+  (let [route (try (with-open [s (java.net.DatagramSocket.)]
+                     (.connect s (java.net.InetAddress/getByName "192.0.2.1") 9)
+                     [(literal (.getLocalAddress s))])
+                   (catch Exception _ nil))
+        local (try (mapv literal (java.net.InetAddress/getAllByName
+                                  (.getHostName (java.net.InetAddress/getLocalHost))))
+                   (catch Exception _ nil))]
+    (->> (concat route local)
+         (remove #(or (loopback-literal? %) (wildcard-literal? %) (link-local-literal? %)))
+         (sort-by #(if (str/includes? % ":") 1 0))
+         distinct
+         vec)))
 
 (defn stop!
   "Close the listening socket and every open connection (ends SSE streams)."

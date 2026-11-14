@@ -246,8 +246,25 @@
 
 ;; ─── routing ───────────────────────────────────────────────────────────────
 
-(defn- local-host? [value port]
-  (contains? #{(str "127.0.0.1:" port) (str "localhost:" port)} value))
+(defn- host-port
+  "HOST:PORT as it appears in a Host header or URL (IPv6 literals bracketed)."
+  [host port]
+  (str (if (str/includes? host ":") (str "[" host "]") host) ":" port))
+
+(defn allowed-hosts
+  "Host header values the server answers to — IP literals of the bound
+  address (every interface for a wildcard bind), localhost for loopback and
+  the name the user asked to bind — never arbitrary names, so DNS rebinding
+  stays out."
+  [{:keys [host port loopback? wildcard? requested]}]
+  (let [hosts (cond
+                wildcard? (concat ["127.0.0.1" "::1" "localhost"] (http/interface-addresses))
+                loopback? [host requested "localhost"]
+                :else [host requested])]
+    (set (map #(host-port % port) hosts))))
+
+(defn- allowed-host? [state value]
+  (contains? (get-in @state [:server :allowed-hosts]) value))
 
 (defn- forbidden [] {:status 403 :headers {"Content-Type" "text/plain"} :body "forbidden"})
 
@@ -272,19 +289,19 @@
   (let [m (try (json/parse-string body true) (catch Exception _ nil))]
     (if (map? m) m {})))
 
-(defn- same-origin? [origin port]
-  (and (string? origin) (str/starts-with? origin "http://")
-       (local-host? (subs origin 7) port)))
+(defn- same-origin? [state origin host]
+  (and (string? origin) (= origin (str "http://" host))
+       (allowed-host? state host)))
 
 (defn handle
   "Route one request. Every route needs the session cookie except the token
   exchange; POSTs also need a same-origin Origin header. The Host check
   defeats DNS rebinding."
   [api state {:keys [method path query headers cookies body]}]
-  (let [{:keys [token server]} @state
-        port (:port server)]
+  (let [{:keys [token]} @state
+        host (get headers "host")]
     (cond
-      (not (local-host? (get headers "host") port)) (forbidden)
+      (not (allowed-host? state host)) (forbidden)
 
       (and (= "GET" method) (= "/" path) (contains? query "token"))
       (if (http/constant-time= token (get query "token"))
@@ -307,7 +324,7 @@
       (= "POST" method)
       (let [action (get actions path)]
         (cond
-          (not (same-origin? (get headers "origin") port)) (forbidden)
+          (not (same-origin? state (get headers "origin") host)) (forbidden)
           (nil? action) {:status 404 :body "not found"}
           :else (action api state (parse-signals body))))
 
@@ -322,25 +339,56 @@
           (when (fs/exists? f) (slurp (str f)))))
       (throw (ex-info "datastar.js not found" {:type :web-remote/missing-asset}))))
 
-(defn url [state]
-  (when-let [{:keys [port]} (:server @state)]
-    (str "http://127.0.0.1:" port "/?token=" (:token @state))))
+(defn urls
+  "Login URLs: the bound address, or for a wildcard bind loopback first and
+  then each interface address."
+  [state]
+  (when-let [{:keys [requested port wildcard?]} (:server @state)]
+    (for [h (if wildcard? (cons "127.0.0.1" (http/interface-addresses)) [requested])]
+      (str "http://" (host-port h port) "/?token=" (:token @state)))))
+
+(defn url [state] (first (urls state)))
+
+(defn parse-address
+  "`PORT`, `HOST`, `HOST:PORT` or `[IPv6]:PORT` → {:host :port}, else nil.
+  A missing host is 127.0.0.1, a missing port 0 (any free port)."
+  [s]
+  (let [s (str/trim (str s))
+        [_ v6 v6-port host host-port] (re-matches #"\[([0-9A-Fa-f:.]+)\](?::(\d+))?|([^:\[\]\s]*)(?::(\d+))?" s)
+        host (or v6 (not-empty host))
+        raw-port (or v6-port host-port)
+        port (cond (nil? raw-port) 0 :else (http/parse-nat raw-port))]
+    (cond
+      (str/blank? s) {:host "127.0.0.1" :port 0}
+      (and (nil? v6) (some->> host (re-matches #"\d+")) (nil? raw-port))
+      (parse-address (str ":" host))                ; bare port
+      (and (or v6 host raw-port) port (<= 0 port 65535))
+      {:host (or host "127.0.0.1") :port port})))
 
 (defn start!
-  "Start the server on PORT (0 = any free port). Answers the login URL."
-  [api state ctx port]
+  "Start the server on HOST:PORT (port 0 = any free port). Answers the
+  login URLs."
+  [api state ctx {:keys [host port]}]
   (if (:server @state)
-    (url state)
+    (urls state)
     (let [datastar (datastar-source api)]
       (swap! state #(-> % live-reset
                         (assoc :ctx ctx :token (http/random-token) :datastar datastar
                                :model (:model ctx) :regions {} :signals nil :leaf nil
                                :dirty #{:status :live :transcript :notice} :notice nil
                                :running? false :compacting? false :queued 0)))
-      (swap! state assoc :server (http/start! {:port port :handler #(handle api state %)}))
+      (let [server (assoc (http/start! {:host host :port port :handler #(handle api state %)})
+                          :requested host)]
+        (swap! state assoc :server (assoc server :allowed-hosts (allowed-hosts server))))
       (start-loop! api state)
-      (ext/ui-set-status api "web-remote" (str "web :" (get-in @state [:server :port])))
-      (url state))))
+      (let [{:keys [host port]} (:server @state)]
+        (ext/ui-set-status api "web-remote" (str "web " (host-port host port))))
+      (urls state))))
+
+(defn exposed?
+  "True when the server listens beyond loopback."
+  [state]
+  (not (get-in @state [:server :loopback?])))
 
 (defn stop! [api state]
   (when-let [server (:server @state)]
@@ -350,7 +398,7 @@
     (try (ext/ui-set-status api "web-remote" nil) (catch Exception _ nil))
     true))
 
-(def usage "/web-remote start [port] | stop | status | url")
+(def usage "/web-remote start [port|host:port] | stop | status | url")
 
 (defn- notice-label [type]
   (case type :warning "web-remote: warning" :error "web-remote: error" "web-remote"))
@@ -372,10 +420,14 @@
         (seq more) (say! usage :warning)
 
         (= "start" cmd)
-        (let [port (if arg (http/parse-nat arg) 0)]
-          (if (and port (<= 0 port 65535))
-            (say! (str "Started: " (start! api state ctx port)) :info)
-            (say! usage :warning)))
+        (if-let [address (parse-address (or arg ""))]
+          (let [started (str/join "\n" (start! api state ctx address))]
+            (say! (str "Started:\n" started) :info)
+            (when (exposed? state)
+              (say! (str "Listening beyond loopback over plain HTTP: anyone on the network who "
+                         "sees the token controls this agent. Use only on a trusted network.")
+                    :warning)))
+          (say! usage :warning))
 
         (and (= "stop" cmd) (nil? arg))
         (say! (if (stop! api state) "Stopped." "Not running.") :info)
@@ -383,7 +435,7 @@
         (and (#{"" "status" "url"} cmd) (nil? arg))
         (if (:server @state)
           (do (swap! state assoc :ctx ctx)
-              (say! (str (url state) " (" (count (:clients @state)) " clients)") :info))
+              (say! (str (str/join "\n" (urls state)) "\n(" (count (:clients @state)) " clients)") :info))
           (say! (str "Not running. " usage) :info))
 
         :else (say! usage :warning))

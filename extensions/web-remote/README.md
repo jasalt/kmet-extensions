@@ -26,16 +26,21 @@ Uses the SCI loader. Native Jolt execution has not been verified.
 
 | Command | Effect |
 | --- | --- |
-| `/web-remote start [port]` | Start on `127.0.0.1` (default: a free port) and show the login URL |
-| `/web-remote status` / `url` | Show the URL again and the connected client count |
+| `/web-remote start [port\|host:port]` | Start (default `127.0.0.1` on a free port) and show the login URLs |
+| `/web-remote status` / `url` | Show the URLs again and the connected client count |
 | `/web-remote stop` | Stop the server and disconnect every client |
 
 Command replies (the URL, warnings, errors) appear in the chat as ephemeral
 `[web-remote]` notices: part of the live transcript, never sent to the LLM
 nor saved to the session. Without a UI layout they fall back to a flash
-notification. The footer shows `web :PORT` while it runs.
+notification. The footer shows `web HOST:PORT` while it runs.
 
-Open the URL shown; it carries a
+Address forms: `8082`, `:8082`, `localhost`, `0.0.0.0:8082`,
+`192.168.1.5:8082`, `[::]:8082`, `[::1]`. A wildcard bind (`0.0.0.0`, `[::]`)
+lists a loopback URL plus one per detected host address; any bind beyond
+loopback adds a warning notice.
+
+Open a URL shown; it carries a
 one-off token that is exchanged for a cookie. The server also stops when the
 extension unloads or kmet quits.
 
@@ -55,11 +60,18 @@ set the thinking level, compact, rename the session and start a new session
 
 ## Security
 
-- Binds `127.0.0.1` only. A random 32-char token is minted per start; `GET
-  /?token=…` sets an `HttpOnly; SameSite=Strict` cookie, and every other
-  request needs it.
-- The `Host` header must be `127.0.0.1:PORT` or `localhost:PORT` (DNS
-  rebinding); POSTs also need a same-origin `Origin`.
+- Binds `127.0.0.1` unless given another address. A random 32-char token is
+  minted per start; `GET /?token=…` sets an `HttpOnly; SameSite=Strict`
+  cookie, and every other request needs it.
+- The `Host` header must name the server by an allowed `HOST:PORT` (DNS
+  rebinding): the bound address and the name given to `start`, `localhost`
+  for a loopback bind, and for a wildcard bind loopback plus the detected host
+  addresses (best effort: the default route's source address and the
+  hostname's addresses — reach it by another address and you get 403; bind
+  that address explicitly instead). POSTs also need a matching `Origin`.
+- **Beyond loopback it is plain HTTP**: the token and cookie cross the
+  network in clear text. Use it only on a trusted network, or tunnel it (e.g.
+  `ssh -L 8082:127.0.0.1:8082 host`) and keep the default bind.
 - All session text is HTML-escaped and rendered as plain text (no markdown).
   The page sends a strict CSP (`'unsafe-eval'` is required by Datastar
   expressions), `X-Frame-Options: DENY`, `no-store` and `no-referrer`.

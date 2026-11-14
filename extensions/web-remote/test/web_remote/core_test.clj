@@ -56,8 +56,9 @@
     (is (contains? (:handlers @calls) :message-update))
     (cmd ctx "status")
     (is (str/includes? (last-text) "Not running"))
-    (cmd ctx "start 70000")
-    (is (= ["web-remote: warning" core/usage] (last (chat))))
+    (doseq [bad ["70000" "0.0.0.0:99999" "a:b:c" "host:x"]]
+      (cmd ctx (str "start " bad))
+      (is (= ["web-remote: warning" core/usage] (last (chat))) bad))
     (cmd ctx "start")
     (is (re-find #"http://127\.0\.0\.1:\d+/\?token=\S+" (last-text)))
     (is (some #(= [:set-status "web-remote"] (take 2 %)) (:ui-calls @calls)))
@@ -73,9 +74,51 @@
              (last (:ui-calls @calls)))))
     (core/shutdown api)))
 
+(deftest address-parsing
+  (is (= {:host "127.0.0.1" :port 0} (core/parse-address "")))
+  (is (= {:host "127.0.0.1" :port 8082} (core/parse-address "8082")))
+  (is (= {:host "127.0.0.1" :port 8082} (core/parse-address ":8082")))
+  (is (= {:host "0.0.0.0" :port 8082} (core/parse-address "0.0.0.0:8082")))
+  (is (= {:host "localhost" :port 0} (core/parse-address "localhost")))
+  (is (= {:host "::" :port 8082} (core/parse-address "[::]:8082")))
+  (is (= {:host "::1" :port 0} (core/parse-address "[::1]")))
+  (is (nil? (core/parse-address "0.0.0.0:65536")))
+  (is (nil? (core/parse-address "::1")) "IPv6 needs brackets")
+  (is (nil? (core/parse-address "h:")))) 
+
+(deftest allowed-hosts
+  (is (= #{"127.0.0.1:1" "localhost:1"}
+         (core/allowed-hosts {:host "127.0.0.1" :requested "127.0.0.1" :port 1 :loopback? true})))
+  (is (= #{"[::1]:1" "localhost:1"}
+         (core/allowed-hosts {:host "::1" :requested "::1" :port 1 :loopback? true})))
+  (is (= #{"10.0.0.2:1" "box.lan:1"}
+         (core/allowed-hosts {:host "10.0.0.2" :requested "box.lan" :port 1})))
+  (let [wild (core/allowed-hosts {:host "0.0.0.0" :requested "0.0.0.0" :port 1 :wildcard? true})]
+    (is (every? wild ["127.0.0.1:1" "[::1]:1" "localhost:1"]))
+    (is (not (wild "0.0.0.0:1")))
+    (is (not (wild "evil.example:1")))))
+
+(deftest wildcard-bind
+  (let [{:keys [api calls st ctx]} (fixture)
+        cmd (get-in @calls [:commands "web-remote" :handler])
+        chat #(keep (fn [[k label text]] (when (= :chat-info k) [label text])) (:ui-calls @calls))]
+    (try
+      (cmd ctx "start 0.0.0.0:0")
+      (let [{:keys [port wildcard? loopback?]} (:server @st)
+            [[_ started] [warn-label warning]] (take-last 2 (chat))]
+        (is (and wildcard? (not loopback?)))
+        (is (str/starts-with? (core/url st) (str "http://127.0.0.1:" port "/?token=")))
+        (is (str/includes? started (core/url st)))
+        (is (= "web-remote: warning" warn-label))
+        (is (str/includes? warning "beyond loopback"))
+        (is (some #(= [:set-status "web-remote" (str "web 0.0.0.0:" port)] %) (:ui-calls @calls)))
+        (is (= 303 (status-of (request port {:path (str "/?token=" (:token @st))}))))
+        (is (= 403 (status-of (request port {:path (str "/?token=" (:token @st)) :host (str "0.0.0.0:" port)})))))
+      (finally (core/stop! api st)))))
+
 (deftest server-end-to-end
   (let [{:keys [api calls st ctx branch leaf running? aborted]} (fixture)
-        port (do (core/start! api st ctx 0) (get-in @st [:server :port]))
+        port (do (core/start! api st ctx {:host "127.0.0.1" :port 0}) (get-in @st [:server :port]))
         token (:token @st)
         cookie (str core/cookie-name "=" token)
         origin (str "http://127.0.0.1:" port)
