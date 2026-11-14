@@ -39,9 +39,15 @@
                   r))]
       (try
         (check (some? tool) "webdriver tool registered")
+        (check (= :sequential (:execution-mode tool)) "calls run sequentially")
+        (let [r (run {:action "nope"})]
+          (check (and (:is-error r) (str/includes? (:content r) "Unknown action")
+                      (= before (chrome-procs)))
+                 "unknown action is an error and starts no browser"))
         (let [r (run {:action "go" :url (str "file://" page)})]
           (check (str/includes? (:content r) "title: WD Smoke") "go + title"))
         (check (= "Hello webdriver" (:content (run {:action "text" :selector "#h"}))) "text by CSS")
+        (check (:is-error (run {:action "fill" :selector "#name"})) "fill without text is refused")
         (check (not (:is-error (run {:action "fill" :selector "#name" :text "kmet"}))) "fill")
         (check (not (:is-error (run {:action "click" :xpath "//button[@id='go']"}))) "click by XPath")
         (check (= "Hi, kmet" (:content (run {:action "text" :selector "#out"}))) "DOM updated after click")

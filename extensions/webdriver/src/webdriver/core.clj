@@ -175,16 +175,31 @@
 
 (defn- text-result [s] {:content (truncate s) :is-error false})
 
+(def ^:private actions
+  #{"start" "go" "info" "snapshot" "text" "click" "fill" "wait" "js" "source" "screenshot" "quit"})
+
+(defn- validate!
+  "Reject bad ARGS before the browser starts or the page is touched."
+  [{:keys [action url text ref selector xpath]}]
+  (let [fail #(throw (ex-info % {}))]
+    (cond
+      (not (actions action)) (fail (str "Unknown action " (pr-str action) ". One of: "
+                                        (str/join ", " (sort actions))))
+      (and (= "go" action) (str/blank? url)) (fail "url is required")
+      (and (= "fill" action) (not (string? text))) (fail "text is required (use \"\" to clear the field)")
+      (and (#{"click" "fill" "wait"} action) (not (or ref selector xpath)))
+      (fail "ref, selector (CSS) or xpath is required"))))
+
 (defn run-action
   "Execute one tool ACTION against the session (started on demand)."
   [config {:keys [action url text script timeout] :as args}]
+  (validate! args)
   (case action
     "quit" (do (stop!) (text-result "Browser closed."))
     (let [driver (start! config)]
       (case action
         "start" (text-result (str "Browser ready (" (if (:headless (driver-opts config)) "headless" "headed") ")."))
-        "go" (do (when (str/blank? url) (throw (ex-info "url is required" {})))
-                 (e/go driver url)
+        "go" (do (e/go driver url)
                  (text-result (page-summary driver)))
         "info" (text-result (page-summary driver))
         "snapshot" (let [{:keys [text refs]} (take-snapshot! driver args)]
@@ -202,7 +217,7 @@
         "fill" (let [q (query-of driver args)]
                  (wait-for! driver q timeout)
                  (e/clear driver q)
-                 (send-keys! driver q (str text))
+                 (send-keys! driver q text)
                  (text-result "Filled."))
         "wait" (do (wait-for! driver (query-of driver args) timeout) (text-result "Visible."))
         "js" (text-result (pr-str (e/js-execute driver (or script "return document.title;"))))
@@ -211,8 +226,7 @@
                                                    :path [:session (:session driver) :screenshot]}))]
                        {:content (str "Screenshot of " (e/get-url driver))
                         :images [{:data b64 :mime-type "image/png"}]
-                        :is-error false})
-        (text-result (str "Unknown action: " action))))))
+                        :is-error false})))))
 
 (defn- error-message [ex]
   (let [d (ex-data ex)]
