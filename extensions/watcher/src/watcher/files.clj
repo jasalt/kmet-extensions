@@ -9,7 +9,7 @@
    :ignore ["**/.git/**" "**/.jj/**" "**/.kmet/**" "**/.pi/**" "**/.agents/**"
             "**/node_modules/**" "**/dist/**" "**/build/**" "**/.cache/**"]
    :maxFileBytes 1048576 :debounceMs 300 :pollMs 1000 :contextLines 12
-   :maxPromptBytes 60000 :marker "AI" :removeHandledMarkerComments true})
+   :maxPromptBytes 60000 :marker "AI" :removeHandledMarkerComments true :shortcut nil})
 
 (def ^:private strings? #(and (vector? %) (every? string? %)))
 
@@ -17,7 +17,8 @@
   {:maxFileBytes pos-int? :debounceMs pos-int? :pollMs pos-int? :maxPromptBytes pos-int?
    :contextLines nat-int? :enabled boolean? :scanOnStart boolean? :removeHandledMarkerComments boolean?
    :roots strings? :include strings? :ignore strings? :extraIgnore strings?
-   :marker #(and (string? %) (not (str/blank? %)))})
+   :marker #(and (string? %) (not (str/blank? %)))
+   :shortcut #(or (nil? %) (and (string? %) (not (str/blank? %))))})
 
 (defn paths [agent-dir cwd]
   {:global (str (fs/path agent-dir "watcher.json"))

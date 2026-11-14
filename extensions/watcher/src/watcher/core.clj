@@ -21,11 +21,15 @@
       (ext/ui-set-status api "watcher" text))))
 
 (defn tick!
-  "Serialize scans, commands and lifecycle transitions. Always refresh queued markers."
+  "Serialize scans, commands and lifecycle transitions. Always refresh queued markers.
+  A manual request that cannot send yet stays requested until the agent is idle.
+  Returns :sent, :waiting, :none or :error; nil when skipped."
   [api state manual?]
   (locking state
-    (let [{:keys [ctx cwd config processed active ended? compacting? cache signature changed-at]} @state]
-      (when (and cwd config (or manual? (:enabled config)))
+    (let [{:keys [ctx cwd config processed active ended? compacting? cache signature changed-at requested?]} @state
+          manual? (or manual? requested?)]
+      ;; An active batch keeps ticking so cleanup runs even when polling is disabled.
+      (when (and cwd config (or manual? (:enabled config) active))
         (let [idle (and (not compacting?) (idle? ctx))
               done? (and active ended? idle)
               _ (when (and done? (:removeHandledMarkerComments config)) (files/clean! cwd config active))
@@ -33,22 +37,38 @@
               sig (mapv #(select-keys % [:id :line :context]) pending)
               now (System/currentTimeMillis)
               changed-at (if (= sig signature) changed-at now)
-              ready? (and (some #(not= :context (:action %)) pending)
+              actionable? (some #(not= :context (:action %)) pending)
+              ready? (and actionable? (or manual? (:enabled config))
                           (or done? (not active)) idle
                           (or manual? (>= (- now changed-at) (:debounceMs config))))
-              text (when ready? (files/prompt pending config))]
-          (swap! state merge {:pending pending :signature sig :changed-at changed-at}
+              text (when ready? (files/prompt pending config))
+              result (cond (not actionable?) :none text :sent ready? :error :else :waiting)]
+          (swap! state merge {:pending pending :signature sig :changed-at changed-at
+                              :requested? (and manual? (= result :waiting))}
                  (when done? {:active nil :ended? false})
                  (cond text {:active pending :ended? false :last-batch pending :error nil}
                        ready? {:error "Batch exceeds maxPromptBytes; narrow roots or increase the limit."}))
           ;; :active is recorded before sending so a synchronous agent-end is not lost.
-          (when text
-            (try
-              (ext/send-user-message api text {:deliver-as :follow-up})
-              (swap! state #(-> % (update :processed into (map :id pending)) (assoc :pending [])))
-              (catch Exception e
-                (swap! state assoc :active nil :error (ex-message e)))))
-          (status! api state))))))
+          (let [result (if text
+                         (try
+                           (ext/send-user-message api text {:deliver-as :follow-up})
+                           (swap! state #(-> % (update :processed into (map :id pending)) (assoc :pending [])))
+                           :sent
+                           (catch Exception e
+                             (swap! state assoc :active nil :error (ex-message e))
+                             :error))
+                         result)]
+            (status! api state)
+            result))))))
+
+(defn check!
+  "Scan now and send actionable markers, or report why nothing was sent."
+  [api state]
+  (case (tick! api state true)
+    :none (ext/ui-notify api "Watcher: no AI! or AI? markers found." :info)
+    :waiting (ext/ui-notify api "Watcher: agent busy; markers will be sent when idle." :info)
+    :error (ext/ui-notify api (str "Watcher: " (:error @state)) :error)
+    nil))
 
 (defn stop! [api state]
   (swap! state assoc :loop nil :status nil)
@@ -69,6 +89,8 @@
             (swap! state assoc :error (ex-message e))
             (status! api state)))))))
 
+(declare command!)
+
 (defn session! [api state ctx]
   (locking state
     (stop! api state)
@@ -77,14 +99,19 @@
           config (files/config paths)]
       (swap! state assoc :ctx ctx :cwd cwd :paths paths :config config :processed #{}
              :pending [] :active nil :ended? false :compacting? false :signature nil
-             :last-batch nil :error nil :cache (atom {}))
+             :last-batch nil :error nil :cache (atom {}) :requested? false)
+      (some-> (:unbind @state) (apply []))
+      (swap! state assoc :unbind
+             (when-let [key-id (and (:has-ui ctx) (:shortcut config))]
+               (ext/register-shortcut! api key-id {:description "Watcher: check for AI markers"
+                                                   :handler #(command! api state % "check")})))
       (when-not (:scanOnStart config)
         (swap! state assoc :processed (set (map :id (files/scan cwd config (:cache @state))))))
       ;; Print mode supports manual scans only.
       (when (:has-ui ctx) (start-loop! api state))
       (status! api state))))
 
-(def usage "Usage: /watcher status|config|start|stop|scan|clear|retry|global start|stop|project start|stop")
+(def usage "Usage: /watcher status|config|start|stop|check|clear|retry|global start|stop|project start|stop")
 
 (defn command! [api state ctx args]
   (locking state
@@ -113,14 +140,14 @@
                                         :last-trigger (mapv #(select-keys % [:path :line :instruction])
                                                             (:last-batch @state)))) :info)
 
-          (= parts ["scan"]) (tick! api state true)
-          (= parts ["clear"]) (do (swap! state assoc :pending [] :processed #{} :signature nil :error nil)
+          (#{["check"] ["scan"]} parts) (check! api state)
+          (= parts ["clear"]) (do (swap! state assoc :pending [] :processed #{} :signature nil :error nil :requested? false)
                                     (ext/ui-notify api "Queue and ledger cleared; unchanged markers may trigger on the next scan." :info))
           (= parts ["retry"])
           (if (:active @state)
             (ext/ui-notify api "Wait for the active watcher batch to finish." :warning)
             (do (swap! state update :processed #(apply disj % (map :id (:last-batch @state))))
-                (tick! api state true)))
+                (check! api state)))
           :else (ext/ui-notify api usage :warning)))
       (catch Exception e (ext/ui-notify api (ex-message e) :error)))))
 
@@ -128,7 +155,9 @@
 (defonce runtime (atom nil))
 
 (defn shutdown [api]
-  (some->> @runtime (stop! api))
+  (when-let [state @runtime]
+    (stop! api state)
+    (some-> (:unbind @state) (apply [])))
   (reset! runtime nil))
 
 (defn init [api]

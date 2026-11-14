@@ -51,7 +51,7 @@ regex literals and language-specific comment rules can produce false positives.
 /watcher config
 /watcher start
 /watcher stop
-/watcher scan
+/watcher check
 /watcher clear
 /watcher retry
 /watcher global start|stop
@@ -62,7 +62,21 @@ Bare start/stop persist project settings. Global changes remain subject to proje
 overrides. Status/config show effective settings, config paths, queue size, last
 trigger and errors. The footer shows on/off/queued/dispatching/error.
 
-Manual scan works even when disabled or in print mode; it can dispatch a prompt.
+`check` (alias `scan`) scans now and sends every `AI!`/`AI?` marker in one batch,
+across files, or reports that none were found. If the agent is busy, the batch is
+sent once it becomes idle. It works even when disabled or in print mode, so you can
+turn polling off (`/watcher stop`), write several comments, then check once.
+
+Optional hotkey for `check`, off by default:
+
+```json
+{"enabled": false, "shortcut": "f5"}
+```
+
+`shortcut` takes a kmet key id (`"f5"`, `"ctrl+alt+w"`, …) and is bound in
+interactive sessions on session start. It takes priority over built-in bindings;
+`f5` otherwise forces a redraw (`alt+r` still does).
+
 Live watching does not start in print mode. Clear resets the pending queue and
 in-memory processed ledger, allowing unchanged markers to trigger again. Retry
 releases the last batch's ledger entries and rescans current files: it never sends
@@ -92,7 +106,8 @@ preserve other keys. Configuration is read on session start/reload and start/sto
   "contextLines": 12,
   "maxPromptBytes": 60000,
   "marker": "AI",
-  "removeHandledMarkerComments": true
+  "removeHandledMarkerComments": true,
+  "shortcut": null
 }
 ```
 

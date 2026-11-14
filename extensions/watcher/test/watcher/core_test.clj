@@ -94,6 +94,44 @@
       (is (seq (:pending @state)))
       (finally (fs/delete-tree dir)))))
 
+(deftest check-command-and-shortcut
+  ;; Polling disabled: check sends on demand, waits while busy, and cleanup still runs.
+  (let [dir (str (fs/create-temp-dir))
+        busy (atom false) sent (atom []) notes (atom []) shortcuts (atom {})
+        state (atom {:processed #{}})
+        ctx {:cwd dir :has-ui true :is-idle #(not @busy)}
+        api {:get-agent-dir (constantly dir)
+             :send-user-message (fn [text _] (swap! sent conj text))
+             :register-shortcut! (fn [k opts] (swap! shortcuts assoc k opts) #(swap! shortcuts dissoc k))
+             :ui {:set-status (fn [& _]) :notify (fn [m _] (swap! notes conj m))}}]
+    (try
+      (fs/create-dirs (str dir "/.kmet/extensions"))
+      (spit (str dir "/.kmet/extensions/watcher.json") "{\"enabled\": false, \"shortcut\": \"f5\"}")
+      (spit (str dir "/a.clj") "; AI. ctx\n")
+      (core/session! api state ctx)
+      (is (= ["f5"] (keys @shortcuts)))
+      (core/command! api state ctx "check")
+      (is (empty? @sent))
+      (is (re-find #"no AI" (last @notes)))
+      (spit (str dir "/a.clj") "; AI. ctx\n; AI! fix\n")
+      (spit (str dir "/b.clj") "; why AI?\n")
+      (reset! busy true)
+      ((:handler (@shortcuts "f5")) ctx)
+      (is (empty? @sent))
+      (is (re-find #"busy" (last @notes)))
+      (reset! busy false)
+      (core/tick! api state false)
+      (is (= 1 (count @sent)) "queued check is sent once idle, even with polling disabled")
+      (is (re-find #"a\.clj:2 \[edit\][\s\S]*b\.clj:1 \[ask\]" (first @sent)) "one batch across files")
+      (swap! state assoc :ended? true)
+      (core/tick! api state false)
+      (is (= "" (slurp (str dir "/a.clj"))) "cleanup runs without polling enabled")
+      (is (= "" (slurp (str dir "/b.clj"))))
+      (reset! core/runtime state)
+      (core/shutdown api)
+      (is (empty? @shortcuts))
+      (finally (core/stop! api state) (fs/delete-tree dir)))))
+
 (deftest unload-stops-polling
   ;; The host calls <plugin-ns>/shutdown on unload; a started loop must stop.
   (let [dir (str (fs/create-temp-dir)) ticks (atom 0) handlers (atom {})
