@@ -259,6 +259,9 @@
                                            "Refs stay valid until navigation; take a new snapshot after the page changes. "
                                            "Actions: start, go, info, snapshot, text, click, fill, wait, js, source, screenshot, quit.")
                          :params params
+                         ;; one browser and one ref table: concurrent calls would race on
+                         ;; start!, quit and the data-kmet-ref marker
+                         :execution-mode :sequential
                          :contextual? true
                          :execute (fn [args on-update signal ctx]
                                     (execute config args on-update signal ctx))})))
