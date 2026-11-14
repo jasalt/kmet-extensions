@@ -24,7 +24,9 @@
                 "<h1 id='h'>Hello webdriver</h1>"
                 "<input id='name'><button id='go' onclick=\"document.getElementById('out').textContent="
                 "'Hi, '+document.getElementById('name').value\">Go</button>"
-                "<p id='out'></p></body></html>"))
+                "<p id='out'></p><div id='host'></div>"
+                "<script>document.getElementById('host').attachShadow({mode:'open'})"
+                ".innerHTML='<button>Shadow</button>'</script></body></html>"))
 
 (support/with-composition
   (fn []
@@ -92,8 +94,12 @@
           (let [r (run {:action "click" :ref "e11"})]
             (check (and (:is-error r) (str/includes? (:content r) "previous page"))
                    "refs expire on navigation"))
-          (check (< 21 (parse-long (subs (ref-of (:content (run {:action "snapshot"})) "button \"Go\"") 1)))
-                 "the next page continues numbering, so old refs are never reused")
+          (let [snap (:content (run {:action "snapshot"}))
+                shadow (run {:action "click" :ref (ref-of snap "button \"Shadow\"")})]
+            (check (< 21 (parse-long (subs (ref-of snap "button \"Go\"") 1)))
+                   "the next page continues numbering, so old refs are never reused")
+            (check (and (:is-error shadow) (str/includes? (:content shadow) "shadow root"))
+                   "a ref inside a shadow root is refused with a clear error"))
           (check (:is-error (run {:action "click" :ref "e99"})) "unknown ref is a tool error"))
         (let [r (run {:action "text" :selector "#missing" :timeout 1})]
           (check (:is-error r) "missing element is a tool error, not an exception"))

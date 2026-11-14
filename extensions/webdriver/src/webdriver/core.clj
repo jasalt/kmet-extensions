@@ -91,21 +91,28 @@
 
 (defn- tag-backend-node!
   "Mark the element with BACKEND-ID with `data-kmet-ref=REF`. Returns false when
-  the node no longer exists in the live document."
+  the node no longer exists in the live document. Throws for an element inside
+  a shadow root, which a document-level CSS query cannot reach."
   [driver backend-id ref]
-  (try
-    (let [object-id (get-in (cdp driver "DOM.resolveNode" {:backendNodeId backend-id})
-                            [:object :objectId])]
-      (true? (get-in (cdp driver "Runtime.callFunctionOn"
-                          {:objectId object-id
-                           :functionDeclaration
-                           (str "function(r){ if (!this.isConnected) return false;"
-                                " document.querySelectorAll('[" ref-attr "]').forEach(e => e.removeAttribute('" ref-attr "'));"
-                                " this.setAttribute('" ref-attr "', r); return true; }")
-                           :arguments [{:value ref}]
-                           :returnByValue true})
-                     [:result :value])))
-    (catch Throwable _ false)))
+  (let [status (try
+                 (let [object-id (get-in (cdp driver "DOM.resolveNode" {:backendNodeId backend-id})
+                                         [:object :objectId])]
+                   (get-in (cdp driver "Runtime.callFunctionOn"
+                                {:objectId object-id
+                                 :functionDeclaration
+                                 (str "function(r){ if (!this.isConnected) return 'detached';"
+                                      " if (this.getRootNode() !== document) return 'shadow';"
+                                      " document.querySelectorAll('[" ref-attr "]').forEach(e => e.removeAttribute('" ref-attr "'));"
+                                      " this.setAttribute('" ref-attr "', r); return 'ok'; }")
+                                 :arguments [{:value ref}]
+                                 :returnByValue true})
+                           [:result :value]))
+                 (catch Throwable _ "detached"))]
+    (when (= "shadow" status)
+      (throw (ex-info (str "Ref " ref " is inside a shadow root, which WebDriver actions cannot"
+                           " target by ref yet. Use the js action instead.")
+                      {:type :webdriver/shadow-ref})))
+    (= "ok" status)))
 
 (defn- ref-query!
   "Resolve REF to a CSS query for a WebDriver action. The cached backend node is

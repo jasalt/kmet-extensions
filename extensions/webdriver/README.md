@@ -176,6 +176,9 @@ in about 0.3 s and a snapshot takes about 15 ms.
   isolation yet.
 - Snapshots do not include iframes, unlabeled clickable `div`s, or
   disambiguation hints (see Implementation above).
+- Elements inside a shadow root appear in snapshots, but actions by ref are
+  refused there: a document-level CSS query cannot reach them. Use `js`, or a
+  future version could act through WebDriver element handles instead.
 - Marking an element with `data-kmet-ref` is a DOM change, and an app that
   watches DOM attributes could see it. The fallback would be agent-browser's
   approach of dispatching mouse events through the Chrome DevTools protocol.
