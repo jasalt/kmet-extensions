@@ -16,7 +16,8 @@
 (def ^:private session (atom nil))
 
 (def ^:private refs
-  "Snapshot ref state (see webdriver.snapshot), reset with the session."
+  "Snapshot ref state (see webdriver.snapshot). Quitting drops the refs but
+  keeps the counter, so a ref never names an element in a later session."
   (atom nil))
 
 ;; ─── Configuration ───────────────────────────────────────────────────────
@@ -49,7 +50,7 @@
 (defn stop!
   "Quit the browser and the chromedriver process, if running."
   []
-  (reset! refs nil)
+  (swap! refs select-keys [:next])
   (when-let [driver @session]
     (reset! session nil)
     (try (e/quit driver) (catch Throwable _ nil))))
@@ -110,7 +111,7 @@
                 (throw (ex-info (str "Not a ref: " (pr-str ref-arg) " (expected e.g. e7)") {})))
         state @refs
         entry (or (get-in state [:refs ref])
-                  (throw (ex-info (str "Unknown ref " ref ". Take a snapshot first.") {})))
+                  (throw (ex-info (str "Unknown ref " ref " (refs expire when the page changes). Take a new snapshot.") {})))
         _ (when (not= (:doc state) (document-id driver))
             (throw (ex-info (str "Ref " ref " is from a previous page. Take a new snapshot.") {})))
         ;; a connected backend node is the same element, even if its text changed

@@ -11,8 +11,9 @@
       - button \"Save\" [ref=e7]
 
   Ref state is plain data and is threaded through `snapshot`. Refs stay stable
-  for a DOM node across snapshots of the same document and reset when the page
-  navigates (the loader id changes):
+  for a DOM node across snapshots of the same document. When the page
+  navigates (the loader id changes) the old refs are dropped, but numbering
+  continues, so a ref from an earlier page never names an element on a new one:
 
       {:doc \"<loader id>\" :next 8
        :refs {\"e7\" {:backend-id 33 :role \"button\" :name \"Save\" :nth 0}}
@@ -119,10 +120,13 @@
 
 (defn- preorder [tree] (tree-seq (comp seq :children) :children tree))
 
-(defn- reset-for [state doc]
+(defn- reset-for
+  "STATE for document DOC: unchanged for the same document, else emptied with
+  numbering carried on, so refs are never reused."
+  [state doc]
   (if (= doc (:doc state))
     state
-    {:doc doc :next 1 :refs {} :by-backend {}}))
+    {:doc doc :next (:next state 1) :refs {} :by-backend {}}))
 
 (defn assign-refs
   "Give every ref-worthy node in TREE a ref. Nodes that had a ref in this document

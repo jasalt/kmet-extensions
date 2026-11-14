@@ -59,6 +59,8 @@ Then act with `{"action": "click", "ref": "e11"}`. Refs can be written as
 - **Stable refs.** An element keeps its ref across snapshots for as long as
   the page does not navigate. Elements that appear later get the next number.
   After a navigation, every ref expires and the tool asks for a new snapshot.
+  Numbering continues on the new page (and after `quit`), so an old ref is
+  never reused for a different element.
 - **Stale refs.** If an element was re-rendered, its ref is looked up again by
   role and name. That only happens when the match is certain. If the name was
   shared by several elements when the snapshot was taken, or is shared by

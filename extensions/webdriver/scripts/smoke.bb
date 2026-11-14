@@ -55,8 +55,6 @@
               ref-of (fn [text pattern]
                        (some #(when (str/includes? % pattern) (second (re-find #"ref=(e\d+)" %)))
                              (str/split-lines text)))
-              _ (check (str/includes? (:content (run {:action "snapshot"})) "button \"Go\"")
-                       "snapshot of the first page")
               _ (run {:action "go" :url fixture})
               t0 (System/currentTimeMillis)
               snap (:content (run {:action "snapshot" :interactive true}))
@@ -87,6 +85,8 @@
           (let [r (run {:action "click" :ref "e11"})]
             (check (and (:is-error r) (str/includes? (:content r) "previous page"))
                    "refs expire on navigation"))
+          (check (< 21 (parse-long (subs (ref-of (:content (run {:action "snapshot"})) "button \"Go\"") 1)))
+                 "the next page continues numbering, so old refs are never reused")
           (check (:is-error (run {:action "click" :ref "e99"})) "unknown ref is a tool error"))
         (let [r (run {:action "text" :selector "#missing" :timeout 1})]
           (check (:is-error r) "missing element is a tool error, not an exception"))

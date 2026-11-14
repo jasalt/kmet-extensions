@@ -105,13 +105,14 @@
     (testing "the same snapshot twice is a fixed point"
       (is (= (:state second-run) (:state (run (:state second-run) (:mutated fixture) {})))))))
 
-(deftest navigation-resets-refs
+(deftest navigation-retires-refs
   (let [state (:state (run {}))
         after (snap/snapshot state "other-loader" (:mutated fixture) {})]
     (is (= "other-loader" (get-in after [:state :doc])))
-    (is (= "e1" (ref-of (:text after) "navigation")))
-    (is (= "e5" (ref-of (:text after) "form \"Profile\"")))
-    (is (= "e6" (ref-of (:text after) "button \"Undo\"")) "numbering restarts in document order")))
+    (is (= "e21" (ref-of (:text after) "navigation")) "numbering continues past the old page")
+    (is (= "e26" (ref-of (:text after) "button \"Undo\"")))
+    (is (not-any? (set (keys (:refs state))) (keys (get-in after [:state :refs])))
+        "no ref from the old page names an element on the new one")))
 
 (deftest parse-ref-forms
   (is (= "e7" (snap/parse-ref "e7")))
