@@ -276,10 +276,10 @@
                  (or (subtrees tree ids)
                      (throw (ex-info "No accessibility node inside the selected element" {})))
                  tree)
-        text (render (shape scoped opts) opts)
-        shown (count (re-seq #"\[ref=|, ref=" text))]
+        shaped (shape scoped opts)
+        text (render shaped opts)]
     {:state state
-     :refs shown
+     :refs (count (filter :ref (rest (preorder shaped))))
      :text (cond
              (seq text) text
              (:interactive opts) "(no interactive elements)"

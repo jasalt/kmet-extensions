@@ -137,6 +137,11 @@
       (is (thrown-with-msg? clojure.lang.ExceptionInfo #"no longer on the page"
                             (snap/recover {:role "button" :name "Gone"} nodes))))))
 
+(deftest ref-count-ignores-page-text
+  (let [nodes [{:nodeId "1" :role {:value "RootWebArea"} :childIds ["2"]}
+               {:nodeId "2" :role {:value "StaticText"} :name {:value "see [ref=e9]"} :backendDOMNodeId 5}]]
+    (is (= 0 (:refs (snap/snapshot nil "d" nodes {}))))))
+
 (deftest empty-input
   (is (= "(empty page)" (:text (snap/snapshot nil "d" [] {}))))
   (is (= "(no interactive elements)" (:text (snap/snapshot nil "d" [] {:interactive true})))))
