@@ -99,7 +99,7 @@
   (let [text (content-text (:content e))]
     (block "assistant" "assistant"
            (when (seq (:thinking e))
-             [:details [:summary "thinking"] [:pre.thinking (clip (:thinking e))]])
+             [:details.thinking [:summary "thinking"] [:pre.thinking (clip (:thinking e))]])
            (when (seq text) [:pre text])
            (for [tc (:tool-calls e)]
              [:div.tool-call [:span.tool (:name tc)] [:pre.args (clip-head (args-text (:arguments tc)) 4000)]])
@@ -241,6 +241,7 @@ pre{white-space:pre-wrap;word-break:break-word;margin:.2em 0;font:13px/1.35 ui-m
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.spinner{animation:none}}
 footer{padding:.5em .8em;background:#1a1a1a;border-top:1px solid #333}
+nav{padding:.3em .8em}#panel:empty{display:none}#panel{padding:.7em;max-height:45vh;overflow:auto;border:1px solid #555}#panel header{display:flex;justify-content:space-between}#panel small{color:#aaa}#panel details{margin:.5em 0}#panel li{margin:.4em 0}.hide-thinking .thinking{display:none}.hide-tools .tool-result,.hide-tools .tool-call{display:none}
 #completions{max-height:12em;overflow:auto}#completions button{display:flex;width:100%;gap:1em;text-align:left}#completions small{color:#aaa}#completions .selected{background:#345}
 #statusline{margin-top:.4em;color:#888;font:12px/1.4 ui-monospace,monospace;overflow-wrap:anywhere}
 .mark{color:#8cf;font-style:italic}.ctx-warning{color:#fc6}.ctx-error{color:#f88}
@@ -265,8 +266,14 @@ button,select,input{background:#333;color:#eee;border:1px solid #555;padding:.2e
       [:script {:type "module" :src "/datastar.js"}]
       [:script {:defer true :src "/app.js"}]]
      [:body {:data-signals (json/generate-string signals)
+             :data-class:hide-thinking "$webThinking === 'hidden'"
+             :data-class:hide-tools "$webTools === 'hidden'"
              :data-init "@get('/events', {openWhenHidden: true})"}
       [:div#status]
+      [:nav (for [[panel title] [["settings" "Settings"] ["tree" "Tree / fork"] ["resume" "Resume"] ["commands" "Commands"]]]
+              [:button {:data-on:click (str "@post('/panel', {payload: {panel: '" panel "'}})")} title])
+       [:button {:data-on:click "navigator.clipboard?.writeText(Array.from(document.querySelectorAll('#transcript .assistant pre:not(.thinking)')).at(-1)?.textContent || '').catch(() => alert('Clipboard permission denied'))"} "Copy last reply"]]
+      [:section#panel]
       [:main#scroll [:div#transcript] [:div#live]]
       [:footer
        [:div#activity]

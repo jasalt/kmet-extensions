@@ -165,6 +165,15 @@
         (is (= "<div id=\"activity\"></div>" (get-in @st [:regions "activity"]))))
       (finally (core/stop! api st)))))
 
+(deftest interactive-command-routing
+  (let [{:keys [api st calls]} (fixture)]
+    (doseq [[text panel] [["/settings" "Settings"] ["/tree" "Session branch"] ["/resume" "Resume session"]]]
+      (let [r ((get core/actions "/prompt") api st {:prompt text})]
+        (is (= 200 (:status r)))
+        (is (str/includes? (:body r) panel))))
+    (is (empty? (filter #(= :send-user-message (first %)) (:ui-calls @calls)))
+        "opening native equivalents must not dispatch a model prompt or TUI dialog")))
+
 (deftest shared-draft
   (let [{:keys [api st]} (fixture)
         editor (atom "TUI draft")

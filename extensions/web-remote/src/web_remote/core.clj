@@ -12,6 +12,7 @@
             [kmet.libs.json :as json]
             [web-remote.completion :as completion]
             [web-remote.http :as http]
+            [web-remote.panels :as panels]
             [web-remote.view :as view]))
 
 (def cookie-name "kmet_web_remote")
@@ -376,8 +377,11 @@
 
 (defn- action-prompt [api state {:keys [prompt deliver]}]
   (let [text (str/trim (str prompt))]
-    (if (str/blank? text)
-      (notice! state "Empty message.")
+    (cond
+      (contains? panels/command-panels text)
+      (panels/open! api state {:panel (get panels/command-panels text)})
+      (str/blank? text) (notice! state "Empty message.")
+      :else
       (let [running? (not (ask (:ctx @state) :is-idle))]
         (ext/send-user-message api text
                                (cond-> {:expand-prompt-templates? true}
@@ -431,7 +435,8 @@
     (notice! state "Draft changed in the TUI or another browser. Your text is kept locally; blur to take the shared draft.")))
 
 (def actions
-  {"/complete" (fn [_ state data] (completion/suggest! state data))
+  {"/panel" panels/open! "/panel/action" panels/action!
+   "/complete" (fn [_ state data] (completion/suggest! state data))
    "/complete/apply" (fn [_ state data] (completion/apply! state data))
    "/draft" action-draft "/prompt" action-prompt "/abort" action-abort "/model" action-model
    "/thinking" action-thinking "/compact" action-compact "/name" action-name
@@ -475,6 +480,7 @@
      :body (view/page {:signals {:prompt (editor-text api) :draft (editor-text api)
                                  :draftbase (editor-text api) :editing false :cursor 0
                                  :completionIndex 0 :completionOpen false :completionResult nil
+                                 :webThinking "visible" :webTools "visible" :sessionpath ""
                                  :deliver "steer" :name ""
                                  :model (or (model-key (:model @state)) "")
                                  :thinking (some-> (thinking api) name)}
