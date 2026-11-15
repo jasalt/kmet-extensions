@@ -10,6 +10,7 @@
             [kmet.libs.concurrent :as concurrent]
             [kmet.libs.host :as host]
             [kmet.libs.json :as json]
+            [web-remote.completion :as completion]
             [web-remote.http :as http]
             [web-remote.view :as view]))
 
@@ -430,7 +431,9 @@
     (notice! state "Draft changed in the TUI or another browser. Your text is kept locally; blur to take the shared draft.")))
 
 (def actions
-  {"/draft" action-draft "/prompt" action-prompt "/abort" action-abort "/model" action-model
+  {"/complete" (fn [_ state data] (completion/suggest! state data))
+   "/complete/apply" (fn [_ state data] (completion/apply! state data))
+   "/draft" action-draft "/prompt" action-prompt "/abort" action-abort "/model" action-model
    "/thinking" action-thinking "/compact" action-compact "/name" action-name
    "/new" action-new})
 
@@ -470,7 +473,9 @@
     {:status 200
      :headers {"Content-Type" "text/html; charset=utf-8" "Content-Security-Policy" csp}
      :body (view/page {:signals {:prompt (editor-text api) :draft (editor-text api)
-                                 :draftbase (editor-text api) :editing false :deliver "steer" :name ""
+                                 :draftbase (editor-text api) :editing false :cursor 0
+                                 :completionIndex 0 :completionOpen false :completionResult nil
+                                 :deliver "steer" :name ""
                                  :model (or (model-key (:model @state)) "")
                                  :thinking (some-> (thinking api) name)}
                        :models models
@@ -572,6 +577,7 @@
       (let [server (assoc (http/start! {:host host :port port :handler #(handle api state %)})
                           :requested host)]
         (swap! state assoc :server (assoc server :allowed-hosts (allowed-hosts server))))
+      (when (:has-ui ctx) (completion/capture! api state))
       (start-loop! api state)
       (let [{:keys [host port]} (:server @state)]
         (ext/ui-set-status api "web-remote" (str "web " (host-port host port))))

@@ -39,6 +39,7 @@
         api (-> api
                 (assoc-in [:session :get-branch] (fn [] @branch))
                 (assoc-in [:session :get-leaf-id] (fn [] @leaf))
+                (assoc-in [:ui :add-autocomplete-provider] (fn [_] nil))
                 (assoc-in [:ui :chat-info]
                           (fn [label content] (swap! state update :ui-calls conj [:chat-info label content])))
                 (assoc-in [:models :get-available]

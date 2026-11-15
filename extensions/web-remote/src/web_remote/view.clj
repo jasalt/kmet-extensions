@@ -241,6 +241,7 @@ pre{white-space:pre-wrap;word-break:break-word;margin:.2em 0;font:13px/1.35 ui-m
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.spinner{animation:none}}
 footer{padding:.5em .8em;background:#1a1a1a;border-top:1px solid #333}
+#completions{max-height:12em;overflow:auto}#completions button{display:flex;width:100%;gap:1em;text-align:left}#completions small{color:#aaa}#completions .selected{background:#345}
 #statusline{margin-top:.4em;color:#888;font:12px/1.4 ui-monospace,monospace;overflow-wrap:anywhere}
 .mark{color:#8cf;font-style:italic}.ctx-warning{color:#fc6}.ctx-error{color:#f88}
 textarea{width:100%;min-height:4em;background:#000;color:#eee;border:1px solid #444;font:14px monospace}
@@ -272,11 +273,17 @@ button,select,input{background:#333;color:#eee;border:1px solid #555;padding:.2e
        [:div#notice]
        [:textarea#composer {:data-bind:prompt true
                    :data-effect "if (!$editing) { $prompt = $draft; $draftbase = $draft; }"
-                   :data-on:focus "$editing = true"
+                   :data-on:focus "$editing = true; $cursor = el.selectionStart"
+                   :data-on:click "$cursor = el.selectionStart"
+                   :data-on:keyup "$cursor = el.selectionStart"
+                   :data-on:input "$cursor = el.selectionStart; $completionOpen = false; $prompt = el.value"
+                   :data-on:input__debounce.150ms "if (!evt.isComposing) @post('/complete', {payload: {prompt: $prompt, cursor: el.selectionStart, force: false}})"
+                   :data-on-signal-patch "if (patch.completionResult && $editing && $cursor === patch.completionResult.beforeCursor && $prompt === patch.completionResult.before) { $prompt = patch.completionResult.text; $completionOpen = false; queueMicrotask(() => { el.setSelectionRange(patch.completionResult.cursor, patch.completionResult.cursor); el.dispatchEvent(new Event('input', {bubbles: true})); }); }"
                    :data-on:blur "if ($prompt !== $draftbase) { @post('/draft', {requestCancellation: 'disabled'}).finally(() => { $editing = document.activeElement === el; }); } else { $editing = false; }"
                    :data-on:input__debounce.300ms "if (!evt.isComposing && $prompt !== $draftbase) @post('/draft', {requestCancellation: 'disabled'})"
                    :placeholder "Message (Ctrl+Enter to send)"
-                   :data-on:keydown "evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey) && (evt.preventDefault(), @post('/prompt'))"}]
+                   :data-on:keydown "if (!evt.isComposing) { if (evt.key === 'Escape') { $completionOpen = false; } else if (evt.key === 'Tab' || (evt.key === 'Enter' && $completionOpen && !evt.ctrlKey && !evt.metaKey)) { evt.preventDefault(); if ($completionOpen && document.querySelector('#completions')?.getClientRects().length) { document.querySelector('#completions .selected')?.click(); } else { @post('/complete', {payload: {prompt: $prompt, cursor: el.selectionStart, force: true}}); } } else if ($completionOpen && (evt.key === 'ArrowDown' || evt.key === 'ArrowUp')) { evt.preventDefault(); const n = document.querySelectorAll('#completions button').length; $completionIndex = n ? ($completionIndex + (evt.key === 'ArrowDown' ? 1 : n - 1)) % n : 0; } else if (evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) { evt.preventDefault(); $completionOpen = false; @post('/prompt'); } }"}]
+       [:div#completions]
        [:div.row
         [:button {:data-on:click "@post('/prompt')"} "Send"]
         [:select {:data-bind:deliver true :title "While running"}

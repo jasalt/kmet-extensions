@@ -77,6 +77,29 @@ concurrent editing: the API exposes neither TUI focus nor cursor position,
 and an accepted web write moves the TUI cursor to the end. Avoid typing in
 both at once.
 
+Autocomplete uses the TUI's provider chain captured when the web server
+starts, without replacing the TUI provider. Typing requests suggestions after
+150 ms; Tab explicitly requests file completion. Use ↑/↓ to select, Tab or
+Enter to apply, Escape to dismiss, or click an item. Ctrl+Enter still sends.
+The provider handles slash commands (including argument completion), `@file`
+and extension completions registered before web-remote's capture factory.
+Later providers appear only if a rebuild puts them before that factory;
+there is no public getter for the final chain. No provider means no suggestions
+(e.g. headless mode). Input history is deferred; see [todo.md](todo.md).
+
+### Composer design
+
+Datastar owns the prompt/focus/cursor signals and debounced `@post` actions.
+`/complete` returns a request-local `#completions` HTML patch, not a global
+SSE region: one browser's menu never replaces another's. Local Datastar
+selection signals drive highlighting. A bounded server ticket retains the
+original provider/items; `/complete/apply` calls that provider and patches a
+result signal. The composer adopts it only if its text and caret still match,
+then places the caret and sends a normal input event (which shares the draft).
+The textarea itself is never morphed. File/command matching is not duplicated
+in browser JavaScript. Up to 50 results and 16 recent request tickets are kept;
+an expired ticket simply needs a fresh completion request.
+
 Input: send a prompt (Ctrl+Enter); while the agent runs it is delivered as
 steer or follow-up (selectable). Also abort, switch model (available models),
 set the thinking level, compact, rename the session and start a new session
@@ -113,6 +136,8 @@ agent with your permissions; treat it like a shell. Stop it when done.
 - `view.clj` — a small escaping hiccup renderer, the page shell and the
   `#status`, `#transcript`, `#live`, `#activity`, `#notice` and `#statusline`
   regions.
+- `completion.clj` — captured TUI provider, request-local suggestion menus and
+  bounded tickets for applying the original provider's edits.
 - `core.clj` — event handlers only update an atom. One render thread wakes
   every 50 ms, re-renders the dirty regions (the transcript whenever the
   session leaf moves) and wakes the SSE clients; each client sends only the
