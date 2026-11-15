@@ -164,6 +164,26 @@
         (is (= "<div id=\"activity\"></div>" (get-in @st [:regions "activity"]))))
       (finally (core/stop! api st)))))
 
+(deftest shared-draft
+  (let [{:keys [api st]} (fixture)
+        editor (atom "TUI draft")
+        writes (atom [])
+        api (-> api
+                (assoc-in [:ui :get-editor-text] #(deref editor))
+                (assoc-in [:ui :set-editor-text] #(do (swap! writes conj %) (reset! editor %))))]
+    (core/sync-draft! api st)
+    (is (= "TUI draft" (:draft @st)))
+    (is (core/write-draft! api st {:prompt "web draft" :draftbase "TUI draft"}))
+    (is (= "web draft" @editor))
+    (is (core/write-draft! api st {:prompt "web draft" :draftbase "TUI draft"}))
+    (is (= ["web draft"] @writes) "identical text must not reset the cursor")
+    (reset! editor "new TUI text")
+    (is (false? (core/write-draft! api st {:prompt "stale browser" :draftbase "web draft"})))
+    (is (= "new TUI text" @editor))
+    (is (= "new TUI text" (:draft @st)))
+    (core/render! api st)
+    (is (= "new TUI text" (:draft (json/parse-string (:signals @st) true))))))
+
 (deftest statusline-data
   (is (= {:input 70 :output 5 :cache-read 20 :cache-write 10 :cost 0.5}
          (core/usage-of {:prompt_tokens 100 :completion_tokens 5 :cost {:total 0.5}

@@ -66,6 +66,17 @@ The page shows:
   is no "(auto)" auto-compaction marker and no extension statuses (neither is
   readable by an extension).
 
+The composer shares draft text with the TUI editor. Browser typing is sent
+with a 300 ms debounce; TUI text is polled every 50 ms and adopted while the
+browser composer is unfocused. Focus keeps your local text and caret intact.
+A write compares the last shared text first: if the TUI or another browser
+changed it, the web draft is kept locally and a notice asks you to blur to
+adopt the shared draft. Sending clears the TUI draft only if it still matches
+the submitted text. TUI collapsed pastes are read expanded. This is not
+concurrent editing: the API exposes neither TUI focus nor cursor position,
+and an accepted web write moves the TUI cursor to the end. Avoid typing in
+both at once.
+
 Input: send a prompt (Ctrl+Enter); while the agent runs it is delivered as
 steer or follow-up (selectable). Also abort, switch model (available models),
 set the thinking level, compact, rename the session and start a new session

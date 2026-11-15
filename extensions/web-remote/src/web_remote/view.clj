@@ -270,7 +270,11 @@ button,select,input{background:#333;color:#eee;border:1px solid #555;padding:.2e
       [:footer
        [:div#activity]
        [:div#notice]
-       [:textarea {:data-bind:prompt true
+       [:textarea#composer {:data-bind:prompt true
+                   :data-effect "if (!$editing) { $prompt = $draft; $draftbase = $draft; }"
+                   :data-on:focus "$editing = true"
+                   :data-on:blur "if ($prompt !== $draftbase) { @post('/draft', {requestCancellation: 'disabled'}).finally(() => { $editing = document.activeElement === el; }); } else { $editing = false; }"
+                   :data-on:input__debounce.300ms "if (!evt.isComposing && $prompt !== $draftbase) @post('/draft', {requestCancellation: 'disabled'})"
                    :placeholder "Message (Ctrl+Enter to send)"
                    :data-on:keydown "evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey) && (evt.preventDefault(), @post('/prompt'))"}]
        [:div.row

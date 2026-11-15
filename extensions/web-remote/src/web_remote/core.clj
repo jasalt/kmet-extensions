@@ -174,6 +174,27 @@
 
 (defn- thinking [api] (try (ext/get-thinking-level api) (catch Exception _ nil)))
 
+(defn editor-text [api]
+  (let [text (ext/ui-get-editor-text api)]
+    (if (string? text) text "")))
+
+(defn sync-draft!
+  "Poll the public expanded editor text. Browser focus keeps the local draft
+  untouched; draftbase is sent back on writes to reject stale browser edits."
+  [api state]
+  (swap! state assoc :draft (editor-text api)))
+
+(defn write-draft!
+  "Compare before replacing the TUI editor. Never rewrite identical text
+  (set-editor-text resets its cursor, undo coalescing and paste bindings)."
+  [api state {:keys [prompt draftbase]}]
+  (let [current (editor-text api)]
+    (if (and (string? prompt) (or (= current draftbase) (= current prompt)))
+      (do (when (not= current prompt) (ext/ui-set-editor-text api prompt))
+          (swap! state assoc :draft prompt)
+          true)
+      (do (swap! state assoc :draft current) false))))
+
 (defn- status-data [state]
   (let [{:keys [ctx running? compacting? queued]} @state
         idle (ask ctx :is-idle)]
@@ -274,13 +295,15 @@
 
 (defn- signals [api state]
   (json/generate-string {:model (or (model-key (:model @state)) "")
-                         :thinking (some-> (thinking api) name)}))
+                         :thinking (some-> (thinking api) name)
+                         :draft (or (:draft @state) "")}))
 
 (defn render!
   "Render the dirty regions — status always (it reads the live idle check),
   the transcript whenever the session leaf moved — and answer true when any
   region or signal changed."
   [api state]
+  (sync-draft! api state)
   (let [leaf (session-call api :get-leaf-id)
         _ (when (not= leaf (:leaf @state)) (swap! state assoc :leaf leaf) (dirty! state :transcript :statusline))
         [old _] (swap-vals! state assoc :dirty #{})
@@ -358,7 +381,10 @@
         (ext/send-user-message api text
                                (cond-> {:expand-prompt-templates? true}
                                  running? (assoc :deliver-as (if (= "follow-up" deliver) :follow-up :steer))))
-        (ok! state (http/patch-signals "{\"prompt\":\"\"}"))))))
+        ;; Do not erase a newer draft typed in the TUI while the request ran.
+        (when (= prompt (editor-text api)) (ext/ui-set-editor-text api ""))
+        (sync-draft! api state)
+        (ok! state (http/patch-signals (json/generate-string {:prompt "" :draftbase (:draft @state)})))))))
 
 (defn- action-model [api state {:keys [model]}]
   (let [m (some #(when (= model (model-key %)) %)
@@ -398,8 +424,13 @@
   (ask (:ctx @state) :abort)
   (ok! state))
 
+(defn- action-draft [api state data]
+  (if (write-draft! api state data)
+    (http/sse-response (http/patch-signals (json/generate-string {:draftbase (:draft @state)})))
+    (notice! state "Draft changed in the TUI or another browser. Your text is kept locally; blur to take the shared draft.")))
+
 (def actions
-  {"/prompt" action-prompt "/abort" action-abort "/model" action-model
+  {"/draft" action-draft "/prompt" action-prompt "/abort" action-abort "/model" action-model
    "/thinking" action-thinking "/compact" action-compact "/name" action-name
    "/new" action-new})
 
@@ -438,7 +469,8 @@
                     (sort-by :label))]
     {:status 200
      :headers {"Content-Type" "text/html; charset=utf-8" "Content-Security-Policy" csp}
-     :body (view/page {:signals {:prompt "" :deliver "steer" :name ""
+     :body (view/page {:signals {:prompt (editor-text api) :draft (editor-text api)
+                                 :draftbase (editor-text api) :editing false :deliver "steer" :name ""
                                  :model (or (model-key (:model @state)) "")
                                  :thinking (some-> (thinking api) name)}
                        :models models
