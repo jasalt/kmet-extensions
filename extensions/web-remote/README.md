@@ -96,6 +96,9 @@ selection signals drive highlighting. A bounded server ticket retains the
 original provider/items; `/complete/apply` calls that provider and patches a
 result signal. The composer adopts it only if its text and caret still match,
 then places the caret and sends a normal input event (which shares the draft).
+The signal-patch handler uses an explicit return to avoid Datastar's implicit
+last-expression rewrite of blocks, and reads the merged result signal (patch
+events contain only changed fields).
 The textarea itself is never morphed. File/command matching is not duplicated
 in browser JavaScript. Up to 50 results and 16 recent request tickets are kept;
 an expired ticket simply needs a fresh completion request.

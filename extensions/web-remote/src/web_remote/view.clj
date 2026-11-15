@@ -278,7 +278,7 @@ button,select,input{background:#333;color:#eee;border:1px solid #555;padding:.2e
                    :data-on:keyup "$cursor = el.selectionStart"
                    :data-on:input "$cursor = el.selectionStart; $completionOpen = false; $prompt = el.value"
                    :data-on:input__debounce.150ms "if (!evt.isComposing) @post('/complete', {payload: {prompt: $prompt, cursor: el.selectionStart, force: false}})"
-                   :data-on-signal-patch "if (patch.completionResult && $editing && $cursor === patch.completionResult.beforeCursor && $prompt === patch.completionResult.before) { $prompt = patch.completionResult.text; $completionOpen = false; queueMicrotask(() => { el.setSelectionRange(patch.completionResult.cursor, patch.completionResult.cursor); el.dispatchEvent(new Event('input', {bubbles: true})); }); }"
+                   :data-on-signal-patch "return (() => { if (patch.completionResult && $editing && $cursor === $completionResult.beforeCursor && $prompt === $completionResult.before) { const result = {...$completionResult}; $prompt = result.text; $completionOpen = false; queueMicrotask(() => { el.setSelectionRange(result.cursor, result.cursor); el.dispatchEvent(new Event('input', {bubbles: true})); }); } })()"
                    :data-on:blur "if ($prompt !== $draftbase) { @post('/draft', {requestCancellation: 'disabled'}).finally(() => { $editing = document.activeElement === el; }); } else { $editing = false; }"
                    :data-on:input__debounce.300ms "if (!evt.isComposing && $prompt !== $draftbase) @post('/draft', {requestCancellation: 'disabled'})"
                    :placeholder "Message (Ctrl+Enter to send)"

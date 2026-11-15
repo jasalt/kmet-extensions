@@ -19,6 +19,19 @@
     (is (str/includes? html "command: ls &lt;/tmp&gt;"))
     (is (str/starts-with? html "<div id=\"transcript\">"))))
 
+(deftest completion-result-handler
+  (let [page (view/page {:signals {} :models [] :levels []})
+        handler (second (re-find #"data-on-signal-patch=\"([^\"]*)\"" page))]
+    (is (str/starts-with? handler "return (() =&gt;")
+        "explicit return bypasses Datastar's last-expression rewriting of a block")
+    (is (str/includes? handler "patch.completionResult &amp;&amp;")
+        "only react when the result changes")
+    (is (str/includes? handler "const result = {...$completionResult}")
+        "patches are partial: read the complete merged signal, snapshot before the microtask")
+    (is (not (str/includes? handler "patch.completionResult.before")))
+    (is (str/includes? handler "$cursor === $completionResult.beforeCursor"))
+    (is (str/includes? handler "el.setSelectionRange(result.cursor, result.cursor)"))))
+
 (deftest content-text
   (is (= "a\n[image]\nb" (view/content-text [{:type :text :text "a"} {:type :image :data "…"} "b"])))
   (is (= "x" (view/content-text [{:type :tool_result :content [{:type :text :text "x"}]}]))))
