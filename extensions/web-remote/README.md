@@ -103,6 +103,30 @@ The textarea itself is never morphed. File/command matching is not duplicated
 in browser JavaScript. Up to 50 results and 16 recent request tickets are kept;
 an expired ticket simply needs a fresh completion request.
 
+## Interactive panels
+
+The navigation bar opens **Settings**, **Tree / fork**, **Resume**, and
+**Commands**. Bare `/settings`, `/tools`, `/model`, `/thinking`, `/theme`,
+`/tree`, `/fork`, and `/resume` in the composer open their browser equivalent.
+Panels are private to each browser, not broadcast. Reopen to refresh.
+
+- **Settings:** available models, thinking level, session-only active tool
+  toggles, browser thinking/tool visibility, TUI thinking/tool display and TUI
+  themes. Host changes are live, not persisted. This is a supported subset,
+  not the full native settings catalog.
+- **Tree / fork:** active-branch entries with IDs, roles and previews. Select
+  an entry (or enter a known ID), navigate with optional branch summary and
+  instructions, fork from a user message, or set/clear a bookmark. The API
+  cannot enumerate abandoned branches; this is not the full TUI tree.
+- **Resume:** switch to a known host session file path. Session browsing is
+  unavailable through the API.
+- **Copy last reply:** copies plain text to the browser clipboard (requires
+  browser permission and a secure context, normally localhost or HTTPS).
+
+Session changes and tool selection require idle/no pending messages. Approvals
+and arbitrary native dialogs stay in the TUI. The complete capability audit
+and proposed improvements are in [kmet-api.md](kmet-api.md).
+
 Input: send a prompt (Ctrl+Enter); while the agent runs it is delivered as
 steer or follow-up (selectable). Also abort, switch model (available models),
 set the thinking level, compact, rename the session and start a new session
