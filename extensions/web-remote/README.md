@@ -1,5 +1,7 @@
 # web-remote — drive the live kmet session from a browser
 
+**SLOP WARNING:** this is most complicated extension currently here and very little human verification of code has been done. It became more of an experiment for UI capabilities the extension API provides (see [kmet-api.md](kmet-api.md)).
+
 A minimal local web page that mirrors the running kmet session (normally the
 TUI's) and accepts input from it. Server-rendered HTML, one SSE stream, and a
 vendored [Datastar](https://data-star.dev) v1.0.5 (`src/web_remote/datastar.js`,
