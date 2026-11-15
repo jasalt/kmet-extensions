@@ -8,6 +8,7 @@
             [clojure.string :as str]
             [kmet.extension :as ext]
             [kmet.libs.concurrent :as concurrent]
+            [kmet.libs.host :as host]
             [kmet.libs.json :as json]
             [web-remote.http :as http]
             [web-remote.view :as view]))
@@ -24,7 +25,7 @@
 ;; ─── state ─────────────────────────────────────────────────────────────────
 ;; {:ctx :server :token :datastar :loop (token) :clients #{queue}
 ;;  :dirty #{:live :status :transcript} :live {:text :thinking :tools}
-;;  :running? :compacting? :queued :model :notice :leaf
+;;  :running? :compacting? :queued :model :notice :leaf :git {:dir :branch}
 ;;  :phase (:waiting-for-model | :working | nil)
 ;;  :transient {:kind (:retry | :compaction | :branch-summary) …} or nil
 ;;  :regions {"status" html "transcript" html "live" html …} :signals json}
@@ -144,14 +145,14 @@
    :queue-update (fn [state {:keys [steering follow-up]}]
                    (swap! state assoc :queued (+ (count steering) (count follow-up)))
                    (dirty! state :status))
-   :model-select (fn [state {:keys [model]}] (swap! state assoc :model model) (dirty! state :status))
-   :thinking-level-select (fn [state _] (dirty! state :status))
-   :session-info-changed (fn [state _] (dirty! state :status))
+   :model-select (fn [state {:keys [model]}] (swap! state assoc :model model) (dirty! state :statusline))
+   :thinking-level-select (fn [state _] (dirty! state :statusline))
+   :session-info-changed (fn [state _] (dirty! state :statusline))
    :context-replaced (fn [state _] (dirty! state :transcript))
    :session-tree reset-live
    :session-start (fn [state e]
                     (swap! state assoc :running? false :queued 0 :phase nil :transient nil)
-                    (dirty! state :activity)
+                    (dirty! state :activity :statusline)
                     (reset-live state e))})
 
 (defn- combine
@@ -173,16 +174,13 @@
 
 (defn- thinking [api] (try (ext/get-thinking-level api) (catch Exception _ nil)))
 
-(defn- status-data [api state]
-  (let [{:keys [ctx running? compacting? queued model]} @state
+(defn- status-data [state]
+  (let [{:keys [ctx running? compacting? queued]} @state
         idle (ask ctx :is-idle)]
-    {:model (model-key model)
-     :thinking (thinking api)
-     ;; events can be missed across a reload; the ctx's live idle check wins
+    {;; events can be missed across a reload; the ctx's live idle check wins
      :running? (if (some? idle) (not idle) running?)
      :compacting? compacting?
-     :queued queued
-     :session-name (session-call api :get-name)}))
+     :queued queued}))
 
 (defn activity-data
   "What the working line shows: the transient indicator when one is up, else
@@ -198,9 +196,77 @@
       transient transient
       busy? {:kind (or phase :working)})))
 
+;; ─── statusline (the TUI footer) ───────────────────────────────────────────────
+
+(defn usage-of
+  "Normalize a persisted message :usage (OpenAI chat/responses, Anthropic,
+  Google/kmet shapes) to {:input :output :cache-read :cache-write :cost}; input
+  excludes cache tokens like kmet.ai.usage/entry-usage, which an extension
+  may not require. Nil when the map carries no token counts."
+  [u]
+  (when (map? u)
+    (let [n #(long (or % 0))
+          cr (or (get-in u [:prompt_tokens_details :cached_tokens]) (get-in u [:input_tokens_details :cached_tokens])
+                 (:prompt_cache_hit_tokens u) (:cache_read_input_tokens u) (:cache-read u))
+          cw (or (get-in u [:prompt_tokens_details :cache_write_tokens]) (get-in u [:input_tokens_details :cache_write_tokens])
+                 (:cache_creation_input_tokens u) (:cache_write_input_tokens u) (:cache-write u))
+          inclusive (or (:prompt_tokens u)
+                        (when (or (:input_tokens_details u) (contains? u :cache_write_input_tokens)) (:input_tokens u)))
+          in (if inclusive (max 0 (- (n inclusive) (n cr) (n cw))) (or (:input_tokens u) (:input u)))
+          out (or (:completion_tokens u) (:output_tokens u) (:output u))]
+      (when (or in out cr cw)
+        {:input (n in) :output (n out) :cache-read (n cr) :cache-write (n cw)
+         :cost (double (or (get-in u [:cost :total]) 0))}))))
+
+(defn- hit-rate [branch]
+  (some (fn [e]
+          (when-let [{:keys [input cache-read cache-write]} (and (= :assistant (:role e)) (usage-of (:usage e)))]
+            (let [total (+ input cache-read cache-write)]
+              (when (pos? total) (* 100.0 (/ cache-read total))))))
+        (rseq (vec branch))))
+
+(defn- home-relative [cwd]
+  (let [home (or (System/getenv "HOME") (System/getenv "USERPROFILE"))]
+    (cond (or (str/blank? home) (nil? cwd)) cwd
+          (= cwd home) "~"
+          (str/starts-with? cwd (str home "/")) (str "~" (subs cwd (count home)))
+          :else cwd)))
+
+(defn- git-branch
+  "The cwd's git branch, resolved once per cwd (a session switch moves it)."
+  [api state cwd]
+  (let [{:keys [dir branch]} (:git @state)]
+    (if (= dir cwd)
+      branch
+      (let [r (try (ext/exec api "git" ["branch" "--show-current"] (cond-> {:timeout-ms 2000} cwd (assoc :dir cwd)))
+                   (catch Exception _ nil))
+            b (when (= 0 (:exit r)) (not-empty (str/trim (str (:out r)))))]
+        (swap! state assoc :git {:dir cwd :branch b})
+        b))))
+
+(defn statusline-data
+  "The TUI footer's data from the extension surface: usage summed over the
+  active branch (the TUI sums the whole session file, abandoned branches too)."
+  [api state]
+  (let [{:keys [ctx model]} @state
+        branch (or (session-call api :get-branch) [])
+        cwd (or (:cwd ctx) (str (fs/cwd)))]
+    {:mark (host/mark)
+     :cwd (home-relative cwd)
+     :branch (git-branch api state cwd)
+     :session-name (session-call api :get-name)
+     :usage (reduce (fn [t e] (if-let [u (usage-of (:usage e))] (merge-with + t u) t))
+                    {:input 0 :output 0 :cache-read 0 :cache-write 0 :cost 0.0} branch)
+     :hit-rate (hit-rate branch)
+     :context (try (ask ctx :get-context-usage) (catch Exception _ nil))
+     :model (model-key model)
+     :reasoning? (boolean (:reasoning model))
+     :thinking (or (thinking api) :off)}))
+
 (defn- render-region [api state region]
   (case region
-    :status (view/status (status-data api state))
+    :status (view/status (status-data state))
+    :statusline (view/statusline (statusline-data api state))
     :live (view/live (:live @state))
     :notice (view/notice (:notice @state))
     :activity (view/activity (activity-data state))
@@ -216,7 +282,7 @@
   region or signal changed."
   [api state]
   (let [leaf (session-call api :get-leaf-id)
-        _ (when (not= leaf (:leaf @state)) (swap! state assoc :leaf leaf) (dirty! state :transcript))
+        _ (when (not= leaf (:leaf @state)) (swap! state assoc :leaf leaf) (dirty! state :transcript :statusline))
         [old _] (swap-vals! state assoc :dirty #{})
         ;; status and activity always: they read the live idle check, and
         ;; the retry countdown ticks; unchanged renders send nothing
@@ -468,7 +534,7 @@
       (swap! state #(-> % live-reset
                         (assoc :ctx ctx :token (http/random-token) :datastar datastar
                                :model (:model ctx) :regions {} :signals nil :leaf nil
-                               :dirty #{:status :live :transcript :notice :activity} :notice nil
+                               :dirty #{:status :live :transcript :notice :activity :statusline} :notice nil :git nil
                                :running? false :compacting? false :queued 0
                                :phase nil :transient nil)))
       (let [server (assoc (http/start! {:host host :port port :handler #(handle api state %)})

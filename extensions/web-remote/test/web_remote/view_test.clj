@@ -35,3 +35,18 @@
   (is (= "Context overflow detected, auto-compacting" (view/activity-text {:kind :compaction :reason :overflow})))
   (is (= "Auto-compacting" (view/activity-text {:kind :compaction :reason :threshold})))
   (is (= "Summarizing branch" (view/activity-text {:kind :branch-summary}))))
+
+(deftest statusline
+  (is (= ["999" "1.2k" "12k" "1.2M" "12M"] (map view/format-tokens [999 1234 12345 1234567 12345678])))
+  (let [s (view/statusline {:mark "б" :cwd "~/src/<x>" :branch "main" :session-name "web"
+                            :usage {:input 1234 :output 56 :cache-read 2000 :cache-write 0 :cost 0.0123}
+                            :hit-rate 61.83 :context {:tokens 95000 :context-window 100000}
+                            :model "p/m1" :reasoning? true :thinking :high})]
+    (is (str/includes? s "<span class=\"mark\">Кб</span> ~/src/&lt;x&gt; (main) • web"))
+    (is (str/includes? s "↑1.2k ↓56 R2.0k CH61.8% $0.012 <span class=\"ctx-error\">95.0%/100k</span>  p/m1 • high")))
+  (let [s (view/statusline {:mark "б" :cwd "/w" :usage {} :context {:context-window 200000}
+                            :model "p/m1" :reasoning? true :thinking :off})]
+    (is (str/includes? s "<span>?/200k</span>  p/m1 • thinking off")))
+  (is (str/includes? (view/statusline {:cwd "/w" :usage {} :model "p/m1" :thinking :high})
+                     "<span>? tokens</span>  p/m1</div>")
+      "non-reasoning models show no thinking suffix"))

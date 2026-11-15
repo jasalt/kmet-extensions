@@ -46,8 +46,8 @@ extension unloads or kmet quits.
 
 The page shows:
 
-- **Status:** idle/running/compacting, model, thinking level, session name and
-  queued messages, plus Abort while busy.
+- **Status:** idle/running/compacting and queued messages, plus Abort while
+  busy.
 - **Transcript:** the current session branch (last 200 entries) — user,
   assistant (thinking collapsed), tool calls/results, bash, custom messages and
   compaction summaries.
@@ -58,6 +58,13 @@ The page shows:
   ("Compacting context", "Auto-compacting", …) or branch summarization
   replaces it while running. Run errors, the repeat-loop guard and failed or
   cancelled compactions appear in the notice line below it.
+- **Statusline** (below the composer, like the TUI footer): `Кб` + cwd (git
+  branch) • session name, then usage (↑input ↓output R/W cache, CH cache-hit
+  rate of the latest response, $cost), context use (% of the window, yellow
+  over 70 %, red over 90 %) and provider/model • thinking level. Differences:
+  usage sums the active branch (the TUI also counts abandoned branches), there
+  is no "(auto)" auto-compaction marker and no extension statuses (neither is
+  readable by an extension).
 
 Input: send a prompt (Ctrl+Enter); while the agent runs it is delivered as
 steer or follow-up (selectable). Also abort, switch model (available models),
@@ -93,7 +100,8 @@ agent with your permissions; treat it like a shell. Stop it when done.
   per connection (`kmet.libs.concurrent/spawn`); plain replies use
   `Connection: close`, `/events` stays open as SSE. All Java interop lives here.
 - `view.clj` — a small escaping hiccup renderer, the page shell and the
-  `#status`, `#transcript`, `#live`, `#activity` and `#notice` regions.
+  `#status`, `#transcript`, `#live`, `#activity`, `#notice` and `#statusline`
+  regions.
 - `core.clj` — event handlers only update an atom. One render thread wakes
   every 50 ms, re-renders the dirty regions (the transcript whenever the
   session leaf moves) and wakes the SSE clients; each client sends only the

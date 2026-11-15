@@ -164,6 +164,33 @@
         (is (= "<div id=\"activity\"></div>" (get-in @st [:regions "activity"]))))
       (finally (core/stop! api st)))))
 
+(deftest statusline-data
+  (is (= {:input 70 :output 5 :cache-read 20 :cache-write 10 :cost 0.5}
+         (core/usage-of {:prompt_tokens 100 :completion_tokens 5 :cost {:total 0.5}
+                         :prompt_tokens_details {:cached_tokens 20 :cache_write_tokens 10}})) "OpenAI chat")
+  (is (= {:input 7 :output 3 :cache-read 4 :cache-write 1 :cost 0.0}
+         (core/usage-of {:input_tokens 7 :output_tokens 3 :cache_read_input_tokens 4
+                         :cache_creation_input_tokens 1})) "Anthropic input excludes cache")
+  (is (nil? (core/usage-of {:foo 1})))
+  (let [{:keys [api st ctx branch leaf]} (fixture)]
+    (swap! branch conj {:role :assistant :usage {:input 100 :output 10 :cache-read 300}}
+           {:role :assistant :usage {:input 50 :output 5 :cache-read 50 :cost {:total 0.25}}})
+    (core/start! api st (assoc ctx :cwd "/nonexistent-dir"
+                               :model {:provider :p :id "m1" :reasoning true}
+                               :get-context-usage (fn [] {:tokens 500 :context-window 1000 :percent 50}))
+                 {:host "127.0.0.1" :port 0})
+    (try
+      (let [d (core/statusline-data api st)]
+        (is (= {:input 150 :output 15 :cache-read 350 :cache-write 0 :cost 0.25} (:usage d)))
+        (is (= 50.0 (:hit-rate d)) "the latest assistant message's rate")
+        (is (= "p/m1" (:model d)))
+        (is (:reasoning? d))
+        (is (nil? (:branch d)) "no git repo, no branch"))
+      (swap! leaf inc)
+      (core/render! api st)
+      (is (str/includes? (get-in @st [:regions "statusline"]) "50.0%/1.0k"))
+      (finally (core/stop! api st)))))
+
 (deftest server-end-to-end
   (let [{:keys [api calls st ctx branch leaf running? aborted]} (fixture)
         port (do (core/start! api st ctx {:host "127.0.0.1" :port 0}) (get-in @st [:server :port]))

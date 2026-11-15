@@ -152,13 +152,10 @@
 ;; ─── status ────────────────────────────────────────────────────────────────
 
 (defn status
-  [{:keys [model thinking running? compacting? queued session-name]}]
+  [{:keys [running? compacting? queued]}]
   (html [:div#status
          [:span.state {:class (if (or running? compacting?) "busy" "idle")}
           (cond compacting? "compacting" running? "running" :else "idle")]
-         [:span (or model "no model")]
-         [:span (str "thinking: " (some-> thinking name))]
-         (when (seq session-name) [:span (str "session: " session-name)])
          (when (pos? (or queued 0)) [:span (str queued " queued")])
          (when (or running? compacting?)
            [:button {:data-on:click "@post('/abort')"} "Abort"])]))
@@ -186,6 +183,43 @@
             [:span.spinner {:aria-hidden "true"}]
             [:span (activity-text data)]])]))
 
+(defn format-tokens
+  "999 → 999, 1234 → 1.2k, 12345 → 12k, 1234567 → 1.2M (the TUI footer's)."
+  [n]
+  (let [n (long n)]
+    (cond
+      (< n 1000) (str n)
+      (< n 10000) (format "%.1fk" (/ n 1000.0))
+      (< n 1000000) (str (Math/round (/ n 1000.0)) "k")
+      (< n 10000000) (format "%.1fM" (/ n 1000000.0))
+      :else (str (Math/round (/ n 1000000.0)) "M"))))
+
+(defn- context-part [{:keys [tokens context-window]}]
+  (let [pct (when (and tokens context-window (pos? context-window))
+              (* 100.0 (/ tokens context-window)))
+        text (cond pct (str (format "%.1f" pct) "%/" (format-tokens context-window))
+                   context-window (str "?/" (format-tokens context-window))
+                   tokens (str (format-tokens tokens) " tokens")
+                   :else "? tokens")]
+    [:span {:class (cond (and pct (> pct 90)) "ctx-error" (and pct (> pct 70)) "ctx-warning")} text]))
+
+(defn statusline
+  "The TUI footer below the composer: mark + cwd (branch) • session name, then
+  usage stats, context use and provider/model • thinking."
+  [{:keys [mark cwd branch session-name usage hit-rate context model reasoning? thinking]}]
+  (let [{:keys [input output cache-read cache-write cost]} usage
+        stat (fn [prefix n] (when (pos? (or n 0)) (str prefix (format-tokens n))))
+        stats (remove nil? [(stat "↑" input) (stat "↓" output) (stat "R" cache-read) (stat "W" cache-write)
+                            (when (and hit-rate (pos? (+ (or cache-read 0) (or cache-write 0))))
+                              (str "CH" (format "%.1f" hit-rate) "%"))
+                            (when (pos? (or cost 0)) (str "$" (format "%.3f" (double cost))))])]
+    (html [:div#statusline
+           [:div [:span.mark (str "К" mark)] " "
+            (str cwd (when branch (str " (" branch ")")) (when (seq session-name) (str " • " session-name)))]
+           [:div (when (seq stats) (str (str/join " " stats) " ")) (context-part context)
+            "  " (str (or model "no-model")
+                      (when reasoning? (str " • " (if (= :off thinking) "thinking off" (some-> thinking name)))))]])))
+
 (defn notice [text]
   (html [:div#notice (when (seq text) text)]))
 
@@ -207,6 +241,8 @@ pre{white-space:pre-wrap;word-break:break-word;margin:.2em 0;font:13px/1.35 ui-m
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.spinner{animation:none}}
 footer{padding:.5em .8em;background:#1a1a1a;border-top:1px solid #333}
+#statusline{margin-top:.4em;color:#888;font:12px/1.4 ui-monospace,monospace;overflow-wrap:anywhere}
+.mark{color:#8cf;font-style:italic}.ctx-warning{color:#fc6}.ctx-error{color:#f88}
 textarea{width:100%;min-height:4em;background:#000;color:#eee;border:1px solid #444;font:14px monospace}
 .row{display:flex;gap:.5em;flex-wrap:wrap;align-items:center;margin-top:.3em}
 button,select,input{background:#333;color:#eee;border:1px solid #555;padding:.2em .6em}
@@ -250,7 +286,8 @@ button,select,input{background:#333;color:#eee;border:1px solid #555;padding:.2e
         [:button {:data-on:click "@post('/compact')"} "Compact"]
         [:input {:data-bind:name true :placeholder "session name" :size 14}]
         [:button {:data-on:click "@post('/name')"} "Rename"]
-        [:button {:data-on:click "confirm('Start a new session?') && @post('/new')"} "New session"]]]]])))
+        [:button {:data-on:click "confirm('Start a new session?') && @post('/new')"} "New session"]]
+       [:div#statusline]]]])))
 
 (def app-js
   "Keep the transcript pinned to the bottom unless the user scrolled up."
