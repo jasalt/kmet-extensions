@@ -116,6 +116,54 @@
         (is (= 403 (status-of (request port {:path (str "/?token=" (:token @st)) :host (str "0.0.0.0:" port)})))))
       (finally (core/stop! api st)))))
 
+(deftest working-line
+  (let [{:keys [api calls st ctx running?]} (fixture)
+        fire! (fn [type & {:as e}]
+                (doseq [h (get-in @calls [:handlers type])] (h (assoc e :type type) {})))
+        line #(some-> (core/activity-data st) ((juxt :kind :attempt :reason)))]
+    (core/start! api st ctx {:host "127.0.0.1" :port 0})
+    (try
+      (is (nil? (core/activity-data st)) "idle shows nothing")
+      (reset! running? true)
+      (fire! :agent-start)
+      (is (= [:waiting-for-model nil nil] (line)))
+      (fire! :message-update :message {:content "x"} :delta {:type :text})
+      (is (= [:working nil nil] (line)))
+      (fire! :turn-start)
+      (is (= [:waiting-for-model nil nil] (line)))
+      (fire! :status :status :executing)
+      (is (= [:working nil nil] (line)))
+      (testing "retry countdown wins over the phase, then gives it back"
+        (fire! :auto-retry-start :attempt 1 :max-attempts 3 :delay-ms 5000 :error-message "boom")
+        (is (= [:retry 1 nil] (line)))
+        (is (<= 4 (:seconds (core/activity-data st)) 5))
+        (fire! :auto-retry-end)
+        (is (= [:working nil nil] (line))))
+      (testing "compaction, and a stale retry end leaves it alone"
+        (fire! :compaction-start :reason :overflow)
+        (fire! :auto-retry-end)
+        (is (= [:compaction nil :overflow] (line)))
+        (fire! :compaction-end :reason :overflow :error-message "too big")
+        (is (= [:working nil nil] (line)))
+        (is (= "Compaction failed: too big" (:notice @st))))
+      (testing "errors surface as a notice; settling clears the line"
+        (fire! :auto-retry-start :attempt 3 :max-attempts 3 :delay-ms 1)
+        (fire! :error :message "rate limited")
+        (is (= "Error: rate limited" (:notice @st)))
+        (reset! running? false)
+        (fire! :agent-settled :outcome :error)
+        (is (nil? (core/activity-data st))))
+      (testing "rendered into the #activity region"
+        (reset! running? true)
+        (fire! :agent-start)
+        (core/render! api st)
+        (is (str/includes? (get-in @st [:regions "activity"]) "Waiting for model"))
+        (reset! running? false)
+        (fire! :agent-settled :outcome :completed)
+        (core/render! api st)
+        (is (= "<div id=\"activity\"></div>" (get-in @st [:regions "activity"]))))
+      (finally (core/stop! api st)))))
+
 (deftest server-end-to-end
   (let [{:keys [api calls st ctx branch leaf running? aborted]} (fixture)
         port (do (core/start! api st ctx {:host "127.0.0.1" :port 0}) (get-in @st [:server :port]))

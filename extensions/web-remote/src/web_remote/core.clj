@@ -25,7 +25,9 @@
 ;; {:ctx :server :token :datastar :loop (token) :clients #{queue}
 ;;  :dirty #{:live :status :transcript} :live {:text :thinking :tools}
 ;;  :running? :compacting? :queued :model :notice :leaf
-;;  :regions {"status" html "transcript" html "live" html} :signals json}
+;;  :phase (:waiting-for-model | :working | nil)
+;;  :transient {:kind (:retry | :compaction | :branch-summary) …} or nil
+;;  :regions {"status" html "transcript" html "live" html …} :signals json}
 
 (defn- dirty! [state & regions]
   (swap! state update :dirty (fnil into #{}) regions))
@@ -57,6 +59,70 @@
              :tool-execution-end (dissoc tools tool-call-id))))
   (dirty! state :live))
 
+;; The working line mirrors the TUI's status indicator: a run phase
+;; (:waiting-for-model until the first token of each LLM call, then :working)
+;; under an optional transient indicator (retry countdown, compaction,
+;; branch summary) that wins while it is up.
+
+(defn- phase! [phase]
+  (fn [state _]
+    (when-not (= phase (:phase @state))
+      (swap! state assoc :phase phase)
+      (dirty! state :activity))))
+
+(defn- transient! [state t]
+  (swap! state assoc :transient t)
+  (dirty! state :activity :status))
+
+(defn- clear-transient!
+  "Clear the transient indicator when KIND is the one showing (a stale end
+  event must not clear a later indicator)."
+  [state kind]
+  (when (= kind (get-in @state [:transient :kind]))
+    (transient! state nil)))
+
+(defn- retry-indicator [{:keys [attempt max-attempts delay-ms]}]
+  {:kind :retry :attempt attempt :max-attempts max-attempts
+   :deadline (+ (concurrent/monotonic-ms) (or delay-ms 0))})
+
+(defn- error-notice! [state text]
+  (swap! state assoc :notice text)
+  (dirty! state :notice))
+
+(def ^:private activity-handlers
+  {:agent-start (phase! :waiting-for-model)
+   :turn-start (phase! :waiting-for-model)
+   :message-update (phase! :working)
+   :message-end (phase! :working)
+   :tool-execution-start (phase! :working)
+   :status (fn [state {:keys [status]}]
+             ((phase! (if (= :thinking status) :waiting-for-model :working)) state nil))
+   :auto-retry-start (fn [state e] (transient! state (retry-indicator e)))
+   :auto-retry-end (fn [state _] (clear-transient! state :retry))
+   :summarization-retry-scheduled (fn [state e] (transient! state (retry-indicator e)))
+   :summarization-retry-attempt-start
+   (fn [state {:keys [source reason]}]
+     (transient! state (if (= :branch-summary source)
+                         {:kind :branch-summary}
+                         {:kind :compaction :reason reason})))
+   :summarization-retry-finished (fn [state _] (clear-transient! state :retry))
+   :compaction-start (fn [state {:keys [reason]}]
+                       (swap! state assoc :compacting? true)
+                       (transient! state {:kind :compaction :reason reason}))
+   :compaction-end (fn [state {:keys [aborted reason error-message]}]
+                     (swap! state assoc :compacting? false)
+                     (clear-transient! state :compaction)
+                     (dirty! state :transcript)
+                     (cond
+                       error-message (error-notice! state (str "Compaction failed: " error-message))
+                       aborted (error-notice! state (if (= :manual reason)
+                                                      "Compaction cancelled."
+                                                      "Auto-compaction cancelled."))))
+   :error (fn [state {:keys [message]}]
+            (when message (error-notice! state (str "Error: " message))))
+   :loop-guard (fn [state {:keys [details]}]
+                 (error-notice! state (or details "Stopped: repeat-loop guard tripped")))})
+
 (defn- reset-live [state _]
   (swap! state live-reset)
   (dirty! state :live :status :transcript))
@@ -71,22 +137,32 @@
    :tool-execution-end on-tool
    :agent-start (fn [state _] (swap! state assoc :running? true) (dirty! state :status))
    :agent-settled (fn [state _]
-                    (swap! state #(-> % live-reset (assoc :running? false)))
-                    (dirty! state :status :live :transcript))
+                    ;; a terminal error ends the run under a retry countdown
+                    (swap! state #(cond-> (-> % live-reset (assoc :running? false :phase nil))
+                                    (= :retry (get-in % [:transient :kind])) (assoc :transient nil)))
+                    (dirty! state :status :live :transcript :activity))
    :queue-update (fn [state {:keys [steering follow-up]}]
                    (swap! state assoc :queued (+ (count steering) (count follow-up)))
                    (dirty! state :status))
-   :compaction-start (fn [state _] (swap! state assoc :compacting? true) (dirty! state :status))
-   :compaction-end (fn [state _] (swap! state assoc :compacting? false) (dirty! state :status :transcript))
    :model-select (fn [state {:keys [model]}] (swap! state assoc :model model) (dirty! state :status))
    :thinking-level-select (fn [state _] (dirty! state :status))
    :session-info-changed (fn [state _] (dirty! state :status))
    :context-replaced (fn [state _] (dirty! state :transcript))
    :session-tree reset-live
-   :session-start (fn [state e] (swap! state assoc :running? false :queued 0) (reset-live state e))})
+   :session-start (fn [state e]
+                    (swap! state assoc :running? false :queued 0 :phase nil :transient nil)
+                    (dirty! state :activity)
+                    (reset-live state e))})
+
+(defn- combine
+  "Merge handler maps; a type in several maps runs every handler in order."
+  [& maps]
+  (apply merge-with (fn [f g] (fn [state e] (f state e) (g state e))) maps))
+
+(def all-handlers (combine handlers activity-handlers))
 
 (defn subscribe! [api state]
-  (doseq [[type f] handlers]
+  (doseq [[type f] all-handlers]
     (ext/on-event api type (fn [event _ctx]
                              (when (:server @state) (f state event))))))
 
@@ -108,11 +184,26 @@
      :queued queued
      :session-name (session-call api :get-name)}))
 
+(defn activity-data
+  "What the working line shows: the transient indicator when one is up, else
+  the run phase while the agent is busy, else nil (idle)."
+  [state]
+  (let [{:keys [ctx transient phase running?]} @state
+        idle (ask ctx :is-idle)
+        busy? (if (some? idle) (not idle) running?)]
+    (cond
+      (= :retry (:kind transient))
+      (assoc transient :seconds (max 0 (long (Math/ceil (/ (- (:deadline transient) (concurrent/monotonic-ms))
+                                                           1000.0)))))
+      transient transient
+      busy? {:kind (or phase :working)})))
+
 (defn- render-region [api state region]
   (case region
     :status (view/status (status-data api state))
     :live (view/live (:live @state))
     :notice (view/notice (:notice @state))
+    :activity (view/activity (activity-data state))
     :transcript (view/transcript (or (session-call api :get-branch) []))))
 
 (defn- signals [api state]
@@ -127,7 +218,9 @@
   (let [leaf (session-call api :get-leaf-id)
         _ (when (not= leaf (:leaf @state)) (swap! state assoc :leaf leaf) (dirty! state :transcript))
         [old _] (swap-vals! state assoc :dirty #{})
-        regions (into {} (for [r (conj (:dirty old) :status)]
+        ;; status and activity always: they read the live idle check, and
+        ;; the retry countdown ticks; unchanged renders send nothing
+        regions (into {} (for [r (into (:dirty old) [:status :activity])]
                            [(name r) (render-region api state r)]))
         sig (signals api state)
         before (select-keys @state [:regions :signals])]
@@ -375,8 +468,9 @@
       (swap! state #(-> % live-reset
                         (assoc :ctx ctx :token (http/random-token) :datastar datastar
                                :model (:model ctx) :regions {} :signals nil :leaf nil
-                               :dirty #{:status :live :transcript :notice} :notice nil
-                               :running? false :compacting? false :queued 0)))
+                               :dirty #{:status :live :transcript :notice :activity} :notice nil
+                               :running? false :compacting? false :queued 0
+                               :phase nil :transient nil)))
       (let [server (assoc (http/start! {:host host :port port :handler #(handle api state %)})
                           :requested host)]
         (swap! state assoc :server (assoc server :allowed-hosts (allowed-hosts server))))

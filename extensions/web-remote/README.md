@@ -52,6 +52,12 @@ The page shows:
   assistant (thinking collapsed), tool calls/results, bash, custom messages and
   compaction summaries.
 - **Live:** the streaming assistant message and running tools with their output.
+- **Working line** (above the composer, like the TUI's spinner): a spinner
+  with "Waiting for model" until each LLM call's first token, then
+  "Working"; a retry countdown ("Retrying (1/3) in 4s"), compaction
+  ("Compacting context", "Auto-compacting", …) or branch summarization
+  replaces it while running. Run errors, the repeat-loop guard and failed or
+  cancelled compactions appear in the notice line below it.
 
 Input: send a prompt (Ctrl+Enter); while the agent runs it is delivered as
 steer or follow-up (selectable). Also abort, switch model (available models),
@@ -87,7 +93,7 @@ agent with your permissions; treat it like a shell. Stop it when done.
   per connection (`kmet.libs.concurrent/spawn`); plain replies use
   `Connection: close`, `/events` stays open as SSE. All Java interop lives here.
 - `view.clj` — a small escaping hiccup renderer, the page shell and the
-  `#status`, `#transcript`, `#live` and `#notice` regions.
+  `#status`, `#transcript`, `#live`, `#activity` and `#notice` regions.
 - `core.clj` — event handlers only update an atom. One render thread wakes
   every 50 ms, re-renders the dirty regions (the transcript whenever the
   session leaf moves) and wakes the SSE clients; each client sends only the

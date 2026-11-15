@@ -163,6 +163,29 @@
          (when (or running? compacting?)
            [:button {:data-on:click "@post('/abort')"} "Abort"])]))
 
+(defn activity-text
+  "The working-line text, worded like the TUI's status indicator."
+  [{:keys [kind reason attempt max-attempts seconds]}]
+  (case kind
+    :waiting-for-model "Waiting for model"
+    :retry (str "Retrying (" attempt "/" max-attempts ") in " seconds "s")
+    :compaction (case reason
+                  :manual "Compacting context"
+                  :overflow "Context overflow detected, auto-compacting"
+                  "Auto-compacting")
+    :branch-summary "Summarizing branch"
+    "Working"))
+
+(defn activity
+  "The working line above the composer: a CSS spinner and the phase text,
+  empty when idle."
+  [data]
+  (html [:div#activity
+         (when data
+           [:div {:class (str "activity " (name (:kind data)))}
+            [:span.spinner {:aria-hidden "true"}]
+            [:span (activity-text data)]])]))
+
 (defn notice [text]
   (html [:div#notice (when (seq text) text)]))
 
@@ -178,6 +201,11 @@ main{flex:1;overflow-y:auto;padding:.5em .8em}
 .live{opacity:.85}.label{font-size:.8em;color:#999}.tool{font-weight:bold}
 pre{white-space:pre-wrap;word-break:break-word;margin:.2em 0;font:13px/1.35 ui-monospace,monospace}
 .thinking,.args{color:#aaa}details summary{cursor:pointer;color:#bbb}
+#activity{min-height:1.5em}.activity{display:flex;gap:.5em;align-items:center;color:#aaa}
+.spinner{width:.8em;height:.8em;border:2px solid #fc6;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+.retry .spinner{border-color:#f88;border-right-color:transparent}.retry{color:#f88}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spinner{animation:none}}
 footer{padding:.5em .8em;background:#1a1a1a;border-top:1px solid #333}
 textarea{width:100%;min-height:4em;background:#000;color:#eee;border:1px solid #444;font:14px monospace}
 .row{display:flex;gap:.5em;flex-wrap:wrap;align-items:center;margin-top:.3em}
@@ -204,6 +232,7 @@ button,select,input{background:#333;color:#eee;border:1px solid #555;padding:.2e
       [:div#status]
       [:main#scroll [:div#transcript] [:div#live]]
       [:footer
+       [:div#activity]
        [:div#notice]
        [:textarea {:data-bind:prompt true
                    :placeholder "Message (Ctrl+Enter to send)"
