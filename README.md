@@ -70,8 +70,8 @@ Credentials are still required for providers and Pushover. `/reload` reads the
 same immutable Nix-store extension sources; restart `nix run` after source edits.
 
 `flake.lock` pins nixpkgs (including Babashka 1.13.229) and upstream kmet
-**v0.3.1** (`a1712881b23e614c1913d7e53a49ba24bce3e8fa`). The launcher and
-standalone artifact both report `kmet v0.3.1`. Nix fetches Maven dependencies with
+**v0.4.0** (`ee89a700ecf14e8e0c45797ddacbb63ced85d8c4`). The launcher and
+standalone artifact both report `kmet v0.4.0`. Nix fetches Maven dependencies with
 a content hash and builds kmet's Babashka uberjar; Java is a build-time tool
 only. First launch downloads/builds dependencies; later launches reuse the
 Nix store, without Maven resolution at startup. Linux and macOS on x86-64 and

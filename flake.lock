@@ -3,16 +3,16 @@
     "kmet": {
       "flake": false,
       "locked": {
-        "lastModified": 1794437406,
-        "narHash": "sha256-KhvxiPMLb7SKNCl0HdrnUelz8OthnLM51P9lfq+HTj4=",
+        "lastModified": 1795198269,
+        "narHash": "sha256-JKZBQonepE9VP3itfiuBDKWaM0DrcXWE3895F3YmLCw=",
         "owner": "kmetia",
         "repo": "kmet-agent",
-        "rev": "a1712881b23e614c1913d7e53a49ba24bce3e8fa",
+        "rev": "ee89a700ecf14e8e0c45797ddacbb63ced85d8c4",
         "type": "github"
       },
       "original": {
         "owner": "kmetia",
-        "ref": "v0.3.1",
+        "ref": "v0.4.0",
         "repo": "kmet-agent",
         "type": "github"
       }
