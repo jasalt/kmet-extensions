@@ -5,7 +5,7 @@
             [watcher.parser :as parser]))
 
 (def defaults
-  {:enabled true :scanOnStart true :roots ["."] :include ["**/*"]
+  {:enabled false :scanOnStart true :roots ["."] :include ["**/*"]
    :ignore ["**/.git/**" "**/.jj/**" "**/.kmet/**" "**/.pi/**" "**/.agents/**"
             "**/node_modules/**" "**/dist/**" "**/build/**" "**/.cache/**"]
    :maxFileBytes 1048576 :debounceMs 300 :pollMs 1000 :contextLines 12

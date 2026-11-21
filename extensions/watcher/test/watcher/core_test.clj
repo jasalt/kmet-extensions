@@ -42,6 +42,7 @@
       (fs/create-sym-link (str dir "/link") (str outside "/secret"))
       (is (= ["a.clj"] (mapv :path (files/scan dir files/defaults))))
       (core/session! api state ctx)
+      (is (false? (get-in @state [:config :enabled])) "watching is off by default")
       (core/tick! api state true)
       (is (empty? @sent))
       (is (= 1 (count (:pending @state))))
@@ -144,7 +145,7 @@
              :ui {:set-status (fn [& _]) :notify (fn [& _])}}]
     (try
       (fs/create-dirs (str dir "/.kmet/extensions"))
-      (spit (str dir "/.kmet/extensions/watcher.json") "{\"pollMs\":100}")
+      (spit (str dir "/.kmet/extensions/watcher.json") "{\"enabled\":true,\"pollMs\":100}")
       (core/init api)
       ((:session-start @handlers) nil {:cwd dir :has-ui true :is-idle #(do (swap! ticks inc) true)})
       (Thread/sleep 350)
